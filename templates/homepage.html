@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assignment Evaluator | Final Year Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #3498db;
+            --primary-green: #2ecc71;
+            --primary-purple: #9b59b6;
+            --light-gray: #f5f7fa;
+            --medium-gray: #e0e7ee;
+            --dark-gray: #34495e;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--light-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: white;
+            box-shadow: var(--shadow-sm);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--primary-blue);
+        }
+
+        .logo span {
+            color: var(--primary-green);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary-blue);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateY(0);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-green {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .btn-green:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-purple {
+            background-color: var(--primary-purple);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background-color: #8e44ad;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 150px 0 80px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .hero-text {
+            flex: 1;
+            z-index: 2;
+            animation: fadeInLeft 1s ease-out;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-text h1 {
+            font-size: 2.8rem;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero-text h1 span {
+            color: var(--primary-purple);
+        }
+
+        .hero-text p {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+            max-width: 600px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .hero-image {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            animation: fadeInRight 1s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .dashboard-preview {
+            width: 100%;
+            max-width: 550px;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.5s ease;
+        }
+
+        .dashboard-preview:hover {
+            transform: scale(1.02);
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 15px;
+            box-shadow: var(--shadow-sm);
+            font-size: 0.9rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background-color: white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section-title h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            text-align: center;
+            border: 1px solid var(--medium-gray);
+            animation: fadeInUp 0.8s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.2s; }
+        .feature-card:nth-child(2) { animation-delay: 0.4s; }
+        .feature-card:nth-child(3) { animation-delay: 0.6s; }
+        .feature-card:nth-child(4) { animation-delay: 0.8s; }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(155, 89, 182, 0.1) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Role Cards */
+        .roles {
+            padding: 80px 0;
+            background-color: var(--light-gray);
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .role-card {
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--medium-gray);
+            animation: fadeInUp 0.8s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        .role-card:nth-child(1) { animation-delay: 0.2s; }
+        .role-card:nth-child(2) { animation-delay: 0.4s; }
+        .role-card:nth-child(3) { animation-delay: 0.6s; }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .role-header {
+            padding: 25px;
+            text-align: center;
+            color: white;
+        }
+
+        .teacher .role-header {
+            background: linear-gradient(135deg, var(--primary-blue), #2980b9);
+        }
+
+        .student .role-header {
+            background: linear-gradient(135deg, var(--primary-green), #27ae60);
+        }
+
+        .admin .role-header {
+            background: linear-gradient(135deg, var(--primary-purple), #8e44ad);
+        }
+
+        .role-header i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .role-header h3 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .role-content {
+            padding: 25px;
+        }
+
+        .role-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .role-features li {
+            padding: 8px 0;
+            display: flex;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .role-features li i {
+            color: var(--primary-green);
+            min-width: 20px;
+        }
+
+        .role-button {
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            transform: translateY(0);
+        }
+
+        .role-button:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .teacher .role-button {
+            background-color: var(--primary-blue);
+        }
+
+        .teacher .role-button:hover {
+            background-color: #2980b9;
+        }
+
+        .student .role-button {
+            background-color: var(--primary-green);
+        }
+
+        .student .role-button:hover {
+            background-color: #27ae60;
+        }
+
+        .admin .role-button {
+            background-color: var(--primary-purple);
+        }
+
+        .admin .role-button:hover {
+            background-color: #8e44ad;
+        }
+
+        /* Team Section */
+        .team {
+            padding: 80px 0;
+            background-color: white;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--medium-gray);
+            animation: fadeInUp 0.8s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        .team-member:nth-child(1) { animation-delay: 0.2s; }
+        .team-member:nth-child(2) { animation-delay: 0.4s; }
+        .team-member:nth-child(3) { animation-delay: 0.6s; }
+        .team-member:nth-child(4) { animation-delay: 0.8s; }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .member-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            border: 4px solid var(--light-gray);
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+
+        .member-role {
+            color: var(--primary-blue);
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .member-bio {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            color: var(--primary-blue);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .social-links a:hover {
+            background-color: var(--primary-blue);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .auth-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0 auto;
+        }
+
+        .auth-form {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--medium-gray);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .auth-form h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        .auth-form p {
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--medium-gray);
+        }
+
+        .auth-tab {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            color: var(--primary-blue);
+        }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-blue);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .role-option {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            transform: translateY(0);
+        }
+
+        .role-option:hover {
+            transform: translateY(-5px);
+        }
+
+        .role-option.active {
+            border-color: var(--primary-blue);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .role-option i {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+
+        .role-option.active i {
+            color: var(--primary-blue);
+        }
+
+        .role-option h4 {
+            color: var(--text-dark);
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .role-option.active h4 {
+            color: var(--primary-blue);
+        }
+
+        .role-option p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 15px;
+            transform: translateY(0);
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .auth-footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 40px 0 20px;
+            font-size: 0.9rem;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 25px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .copyright {
+            padding-top: 20px;
+            color: #bdc3c7;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Project Info Banner */
+        .project-info {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-text p {
+                margin: 0 auto 25px;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 130px 0 60px;
+            }
+
+            .hero-text h1 {
+                font-size: 2.2rem;
+            }
+
+            .section-title h2 {
+                font-size: 1.8rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .auth-tabs {
+                justify-content: center;
+            }
+
+            .role-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Project Info Banner -->
+    <div class="project-info">
+        <div class="container">
+            <p>Final Year Computer Science Project - AI Assignment Evaluator</p>
+        </div>
+    </div>
+
+    <!-- Header/Navigation -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-robot"></i>
+                    AI <span>Assignment</span> Evaluator
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#team">Our Team</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" onclick="showAuthPage('login')">Login</button>
+                    <button class="btn btn-primary" onclick="showAuthPage('register')">Get Started</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Landing Page -->
+    <section id="landing-page">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Grade Assignments with <span>AI Power</span></h1>
+                        <p>Our system helps teachers grade assignments faster and gives students better feedback. Save time and focus on learning!</p>
+                        <div class="ai-badge">
+                            <i class="fas fa-bolt"></i>
+                            Powered by Google Gemini AI
+                        </div>
+                        <div class="hero-buttons">
+                            <button class="btn btn-primary" onclick="showAuthPage('register')">
+                                <i class="fas fa-rocket"></i> Try It Now
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-play-circle"></i> Watch Demo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=2070&auto=format&fit=crop" alt="Dashboard Preview" class="dashboard-preview">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="section-title">
+                    <h2>What Our System Does</h2>
+                    <p>Smart tools for teachers and students</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>AI Grading</h3>
+                        <p>Our AI reads assignments and gives fair grades based on your instructions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h3>PDF Processing</h3>
+                        <p>Students upload PDFs, our system reads the text for grading.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Performance Reports</h3>
+                        <p>See how students are doing with easy-to-understand reports.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Helpful Feedback</h3>
+                        <p>Students get comments on what they did well and what needs work.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Role Cards -->
+        <section class="roles" id="how-it-works">
+            <div class="container">
+                <div class="section-title">
+                    <h2>How It Works For You</h2>
+                    <p>Designed for teachers, students, and administrators</p>
+                </div>
+                <div class="roles-grid">
+                    <div class="role-card teacher">
+                        <div class="role-header">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <h3>For Teachers</h3>
+                            <p>Create assignments and manage classes</p>
+                        </div>
+                        <div class="role-content">
+                            <ul class="role-features">
+                                <li><i class="fas fa-check-circle"></i> Set up assignments with instructions</li>
+                                <li><i class="fas fa-check-circle"></i> Create classes and invite students</li>
+                                <li><i class="fas fa-check-circle"></i> Automatically grade submissions</li>
+                                <li><i class="fas fa-check-circle"></i> Download student reports</li>
+                            </ul>
+                            <button class="role-button" onclick="showAuthPage('register')">
+                                <i class="fas fa-user-plus"></i> Sign Up as Teacher
+                            </button>
+                        </div>
+                    </div>
+                    <div class="role-card student">
+                        <div class="role-header">
+                            <i class="fas fa-user-graduate"></i>
+                            <h3>For Students</h3>
+                            <p>Submit work and get feedback</p>
+                        </div>
+                        <div class="role-content">
+                            <ul class="role-features">
+                                <li><i class="fas fa-check-circle"></i> Join classes with a code</li>
+                                <li><i class="fas fa-check-circle"></i> Submit assignments as PDFs</li>
+                                <li><i class="fas fa-check-circle"></i> Get AI feedback on your work</li>
+                                <li><i class="fas fa-check-circle"></i> See your grades and progress</li>
+                            </ul>
+                            <button class="role-button" onclick="showAuthPage('register')">
+                                <i class="fas fa-user-plus"></i> Sign Up as Student
+                            </button>
+                        </div>
+                    </div>
+                    <div class="role-card admin">
+                        <div class="role-header">
+                            <i class="fas fa-cogs"></i>
+                            <h3>For Administrators</h3>
+                            <p>Manage the system and users</p>
+                        </div>
+                        <div class="role-content">
+                            <ul class="role-features">
+                                <li><i class="fas fa-check-circle"></i> Manage all users and accounts</li>
+                                <li><i class="fas fa-check-circle"></i> View system statistics</li>
+                                <li><i class="fas fa-check-circle"></i> Monitor assignment activity</li>
+                                <li><i class="fas fa-check-circle"></i> Generate school-wide reports</li>
+                            </ul>
+                            <button class="role-button" onclick="showAdminLogin()">
+                                <i class="fas fa-sign-in-alt"></i> Admin Login
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section class="team" id="team">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Meet Our Project Team</h2>
+                    <p>Final Year Computer Science Students</p>
+                </div>
+                <div class="team-grid">
+                    <div class="team-member">
+                        <div class="member-photo">
+                            <span>M1</span>
+                        </div>
+                        <h3 class="member-name">Member #1</h3>
+                        <div class="member-role">Project Lead</div>
+                        <p class="member-bio">Handled system architecture and AI integration.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-photo">
+                            <span>M2</span>
+                        </div>
+                        <h3 class="member-name">Member #2</h3>
+                        <div class="member-role">AI Specialist</div>
+                        <p class="member-bio">Developed the grading algorithms and AI models.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-photo">
+                            <span>M3</span>
+                        </div>
+                        <h3 class="member-name">Member #3</h3>
+                        <div class="member-role">Frontend Developer</div>
+                        <p class="member-bio">Created the user interface and website design.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-photo">
+                            <span>M4</span>
+                        </div>
+                        <h3 class="member-name">Member #4</h3>
+                        <div class="member-role">Backend Developer</div>
+                        <p class="member-bio">Built the server, database, and API integrations.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <!-- Login Page -->
+    <section id="login-page" class="auth-container" style="display: none;">
+        <div class="auth-content">
+            <div class="auth-form">
+                <h2>Login to AI Assignment Evaluator</h2>
+                <p>Sign in to access your account</p>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="user" onclick="switchAuthTab('user')">User Login</button>
+                    <button class="auth-tab" data-tab="admin" onclick="switchAuthTab('admin')">Admin Login</button>
+                </div>
+
+                <form id="user-login-form" class="auth-form-content">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="you@school.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group" style="text-align: right;">
+                        <a href="#" style="color: var(--primary-blue); text-decoration: none;">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="submit-btn">Sign In</button>
+                </form>
+
+                <form id="admin-login-form" class="auth-form-content" style="display: none;">
+                    <div class="form-group">
+                        <label for="admin-email">Admin Email</label>
+                        <input type="email" id="admin-email" class="form-control" placeholder="admin@school.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-key">Security Key</label>
+                        <input type="password" id="admin-key" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Admin Sign In</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" onclick="showAuthPage('register')">Sign Up Now</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Page -->
+    <section id="register-page" class="auth-container" style="display: none;">
+        <div class="auth-content">
+            <div class="auth-form">
+                <h2>Create Your Account</h2>
+                <p>Join AI Assignment Evaluator to get started</p>
+
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Full Name</label>
+                        <input type="text" id="register-name" class="form-control" placeholder="John Smith" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" class="form-control" placeholder="you@school.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm">Confirm Password</label>
+                        <input type="password" id="register-confirm" class="form-control" placeholder="••••••••" required>
+                    </div>
+
+                    <h4 style="margin: 20px 0 10px; text-align: center;">I am a:</h4>
+                    <div class="role-selector">
+                        <div class="role-option active" onclick="selectRole(this, 'teacher')">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <h4>Teacher</h4>
+                            <p>Educator/Professor</p>
+                        </div>
+                        <div class="role-option" onclick="selectRole(this, 'student')">
+                            <i class="fas fa-user-graduate"></i>
+                            <h4>Student</h4>
+                            <p>Learner</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <div class="form-check">
+                            <input type="checkbox" id="terms" class="form-check-input" required>
+                            <label for="terms" class="form-check-label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Create Account</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" onclick="showAuthPage('login')">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-robot"></i> AI Assignment Evaluator
+                </div>
+                <p>A final year computer science project</p>
+
+                <div class="footer-links">
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#team">Our Team</a>
+                    <a href="#">Contact</a>
+                </div>
+
+                <div class="copyright">
+                    <p>&copy; 2025 AI Assignment Evaluator - Final Year Project. This is a university project.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Page navigation functions
+        function showAuthPage(page) {
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('register-page').style.display = 'none';
+
+            if(page === 'login') {
+                document.getElementById('login-page').style.display = 'flex';
+                switchAuthTab('user'); // Show user login by default
+            } else if(page === 'register') {
+                document.getElementById('register-page').style.display = 'flex';
+            } else {
+                document.getElementById('landing-page').style.display = 'block';
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        function showAdminLogin() {
+            showAuthPage('login');
+            switchAuthTab('admin');
+        }
+
+        // Switch between user and admin login
+        function switchAuthTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.auth-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === tab);
+            });
+
+            // Show the correct form
+            document.getElementById('user-login-form').style.display =
+                tab === 'user' ? 'block' : 'none';
+            document.getElementById('admin-login-form').style.display =
+                tab === 'admin' ? 'block' : 'none';
+        }
+
+        // Role selection function
+        function selectRole(element, role) {
+            document.querySelectorAll('.role-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        // Form submission handlers
+        document.getElementById('user-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Login functionality will be implemented in the backend');
+        });
+
+        document.getElementById('admin-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Admin login functionality will be implemented in the backend');
+        });
+
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Registration functionality will be implemented in the backend');
+        });
+
+        // Set default role
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleOptions = document.querySelectorAll('.role-option');
+            if(roleOptions.length > 0) {
+                roleOptions[0].click();
+            }
+        });
+
+        // Animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            // Observe animated elements
+            document.querySelectorAll('.feature-card, .role-card, .team-member').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
