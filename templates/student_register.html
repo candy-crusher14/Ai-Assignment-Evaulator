@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - AI Assignment Evaluator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #3498db;
+            --primary-green: #2ecc71;
+            --primary-purple: #9b59b6;
+            --light-gray: #f5f7fa;
+            --medium-gray: #e0e7ee;
+            --dark-gray: #34495e;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--light-gray);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .auth-form {
+            background-color: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .auth-form h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        .auth-form p {
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 15px;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .auth-footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-form">
+            <h2>Student Registration</h2>
+            <p>Create your student account</p>
+
+            {% if error %}
+                <div style="color: var(--danger); margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            <form action="/student/register" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="your.email@example.com">
+                </div>
+                <button type="submit" class="submit-btn">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login">Sign In</a></p>
+                <p>Are you a teacher? <a href="/teacher/register">Register as Teacher</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password matching validation
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+
+        form.addEventListener('submit', function(e) {
+            if (password.value !== confirmPassword.value) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                confirmPassword.focus();
+            }
+        });
+    </script>
+</body>
+</html>

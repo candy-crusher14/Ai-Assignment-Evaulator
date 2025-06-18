@@ -40,7 +40,8 @@ db = SQLAlchemy(app)
 
 # Configure Gemini API
 genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
-gemini_model = genai.GenerativeModel('gemini-pro')
+# gemini_model = (genai.
+                # GenerativeModel('gemini-pro'))
 
 
 # Define database models
@@ -330,6 +331,11 @@ def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = hash_password(request.form['password'])
+        admin_code = request.form.get('admin_code', '')
+
+        # Check admin code (replace 'ADMIN_SECRET' with your actual secret)
+        if admin_code != os.environ.get('ADMIN_SECRET', 'admin123'):
+            return render_template('admin_login.html', error='Invalid admin code')
 
         admin = Admin.query.filter_by(username=username, password=password).first()
         if admin:
@@ -337,7 +343,7 @@ def admin_login():
             session['admin_id'] = admin.admin_id
             return redirect(url_for('admin_dashboard'))
         return render_template('admin_login.html', error='Invalid credentials')
-    return render_template('admin_login.html')
+    return render_template('login.html')
 
 
 @app.route('/admin/dashboard')
@@ -391,34 +397,47 @@ def admin_logout():
 # Teacher routes
 @app.route('/teacher/register', methods=['GET', 'POST'])
 def teacher_register():
+    error = None
     if request.method == 'POST':
         username = request.form['username']
-        password = hash_password(request.form['password'])
+        password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
         full_name = request.form.get('full_name', '')
         email = request.form.get('email', '')
         department = request.form.get('department', '')
 
-        if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
-            return render_template('teacher_register.html', error='Username already exists')
+        # Check password match
+        if password != confirm_password:
+            error = 'Passwords do not match'
+        else:
+            # Check if username exists
+            if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
+                error = 'Username already exists'
+            else:
+                # Hash password
+                hashed_password = hash_password(password)
 
-        new_teacher = Teacher(
-            username=username,
-            password=password,
-            full_name=full_name,
-            email=email,
-            department=department
-        )
+                # Create new teacher
+                new_teacher = Teacher(
+                    username=username,
+                    password=hashed_password,
+                    full_name=full_name,
+                    email=email,
+                    department=department
+                )
 
-        try:
-            db.session.add(new_teacher)
-            db.session.commit()
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('teacher_login'))
-        except Exception as e:
-            db.session.rollback()
-            return render_template('teacher_register.html', error=f'Registration failed: {str(e)}')
+                try:
+                    db.session.add(new_teacher)
+                    db.session.commit()
+                    # Automatically log in after registration
+                    session['teacher_logged_in'] = True
+                    session['teacher_id'] = new_teacher.teacher_id
+                    return redirect(url_for('teacher_dashboard'))
+                except Exception as e:
+                    db.session.rollback()
+                    error = f'Registration failed: {str(e)}'
 
-    return render_template('teacher_register.html')
+    return render_template('teacher_register.html', error=error)
 
 
 @app.route('/teacher/login', methods=['GET', 'POST'])
@@ -642,32 +661,45 @@ def teacher_logout():
 # Student routes
 @app.route('/student/register', methods=['GET', 'POST'])
 def student_register():
+    error = None
     if request.method == 'POST':
         username = request.form['username']
-        password = hash_password(request.form['password'])
+        password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
         full_name = request.form.get('full_name', '')
         email = request.form.get('email', '')
 
-        if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
-            return render_template('student_register.html', error='Username already exists')
+        # Check password match
+        if password != confirm_password:
+            error = 'Passwords do not match'
+        else:
+            # Check if username exists
+            if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
+                error = 'Username already exists'
+            else:
+                # Hash password
+                hashed_password = hash_password(password)
 
-        new_student = Student(
-            username=username,
-            password=password,
-            full_name=full_name,
-            email=email
-        )
+                # Create new student
+                new_student = Student(
+                    username=username,
+                    password=hashed_password,
+                    full_name=full_name,
+                    email=email
+                )
 
-        try:
-            db.session.add(new_student)
-            db.session.commit()
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('student_login'))
-        except Exception as e:
-            db.session.rollback()
-            return render_template('student_register.html', error=f'Registration failed: {str(e)}')
+                try:
+                    db.session.add(new_student)
+                    db.session.commit()
+                    # Automatically log in after registration
+                    session['student_logged_in'] = True
+                    session['student_id'] = new_student.student_id
+                    return redirect(url_for('student_dashboard'))
+                except Exception as e:
+                    db.session.rollback()
+                    error = f'Registration failed: {str(e)}'
 
-    return render_template('student_register.html')
+    return render_template('student_register.html', error=error)
 
 
 @app.route('/student/login', methods=['GET', 'POST'])
@@ -817,6 +849,47 @@ def student_logout():
     session.pop('student_logged_in', None)
     session.pop('student_id', None)
     return redirect(url_for('index'))
+
+
+# Unified login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = hash_password(request.form['password'])
+        role = request.form['role']
+        admin_code = request.form.get('admin_code', '')
+
+        if role == 'teacher':
+            teacher = Teacher.query.filter_by(username=username, password=password).first()
+            if teacher:
+                session['teacher_logged_in'] = True
+                session['teacher_id'] = teacher.teacher_id
+                return redirect(url_for('teacher_dashboard'))
+            error = 'Invalid credentials for teacher'
+
+        elif role == 'student':
+            student = Student.query.filter_by(username=username, password=password).first()
+            if student:
+                session['student_logged_in'] = True
+                session['student_id'] = student.student_id
+                return redirect(url_for('student_dashboard'))
+            error = 'Invalid credentials for student'
+
+        elif role == 'admin':
+            # Check admin code (replace 'ADMIN_SECRET' with your actual secret)
+            if admin_code != os.environ.get('ADMIN_SECRET', 'admin123'):
+                error = 'Invalid admin code'
+            else:
+                admin = Admin.query.filter_by(username=username, password=password).first()
+                if admin:
+                    session['admin_logged_in'] = True
+                    session['admin_id'] = admin.admin_id
+                    return redirect(url_for('admin_dashboard'))
+                error = 'Invalid credentials for admin'
+
+    return render_template('login.html', error=error)
 
 
 # Error handlers

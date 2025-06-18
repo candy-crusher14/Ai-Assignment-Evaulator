@@ -853,6 +853,35 @@
             font-size: 0.9rem;
         }
 
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: var(--primary-green);
+        }
+
+        .toast.error {
+            background-color: var(--danger);
+        }
+
         /* Responsive Design */
         @media (max-width: 992px) {
             .hero-content {
@@ -917,7 +946,7 @@
     <header>
         <div class="container">
             <nav class="navbar">
-                <a href="index.html" class="logo">
+                <a href="/" class="logo">
                     <i class="fas fa-robot"></i>
                     AI <span>Assignment</span> Evaluator
                 </a>
@@ -928,8 +957,8 @@
                     <li><a href="#contact">Contact</a></li>
                 </ul>
                 <div class="auth-buttons">
-                    <button class="btn btn-outline" onclick="showAuthPage('login')">Login</button>
-                    <button class="btn btn-primary" onclick="showAuthPage('register')">Get Started</button>
+                    <a href="/login" class="btn btn-outline">Login</a>
+                    <button class="btn btn-primary" onclick="document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })">Register</button>
                 </div>
             </nav>
         </div>
@@ -949,10 +978,10 @@
                             Powered by Google Gemini AI
                         </div>
                         <div class="hero-buttons">
-                            <button class="btn btn-primary" onclick="showAuthPage('register')">
+                            <button class="btn btn-primary" onclick="document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })">
                                 <i class="fas fa-rocket"></i> Try It Now
                             </button>
-                            <button class="btn btn-outline">
+                            <button class="btn btn-outline" onclick="showDemo()">
                                 <i class="fas fa-play-circle"></i> Watch Demo
                             </button>
                         </div>
@@ -1025,9 +1054,9 @@
                                 <li><i class="fas fa-check-circle"></i> Automatically grade submissions</li>
                                 <li><i class="fas fa-check-circle"></i> Download student reports</li>
                             </ul>
-                            <button class="role-button" onclick="showAuthPage('register')">
-                                <i class="fas fa-user-plus"></i> Sign Up as Teacher
-                            </button>
+                            <a href="/teacher/register" class="role-button">
+                                <i class="fas fa-user-plus"></i> Register as Teacher
+                            </a>
                         </div>
                     </div>
                     <div class="role-card student">
@@ -1043,9 +1072,9 @@
                                 <li><i class="fas fa-check-circle"></i> Get AI feedback on your work</li>
                                 <li><i class="fas fa-check-circle"></i> See your grades and progress</li>
                             </ul>
-                            <button class="role-button" onclick="showAuthPage('register')">
-                                <i class="fas fa-user-plus"></i> Sign Up as Student
-                            </button>
+                            <a href="/student/register" class="role-button">
+                                <i class="fas fa-user-plus"></i> Register as Student
+                            </a>
                         </div>
                     </div>
                     <div class="role-card admin">
@@ -1061,9 +1090,9 @@
                                 <li><i class="fas fa-check-circle"></i> Monitor assignment activity</li>
                                 <li><i class="fas fa-check-circle"></i> Generate school-wide reports</li>
                             </ul>
-                            <button class="role-button" onclick="showAdminLogin()">
+                            <a href="/admin/login" class="role-button">
                                 <i class="fas fa-sign-in-alt"></i> Admin Login
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1131,111 +1160,8 @@
         </section>
     </section>
 
-    <!-- Login Page -->
-    <section id="login-page" class="auth-container" style="display: none;">
-        <div class="auth-content">
-            <div class="auth-form">
-                <h2>Login to AI Assignment Evaluator</h2>
-                <p>Sign in to access your account</p>
-
-                <div class="auth-tabs">
-                    <button class="auth-tab active" data-tab="user" onclick="switchAuthTab('user')">User Login</button>
-                    <button class="auth-tab" data-tab="admin" onclick="switchAuthTab('admin')">Admin Login</button>
-                </div>
-
-                <form id="user-login-form" class="auth-form-content">
-                    <div class="form-group">
-                        <label for="login-email">Email Address</label>
-                        <input type="email" id="login-email" class="form-control" placeholder="you@school.edu" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-group" style="text-align: right;">
-                        <a href="#" style="color: var(--primary-blue); text-decoration: none;">Forgot password?</a>
-                    </div>
-                    <button type="submit" class="submit-btn">Sign In</button>
-                </form>
-
-                <form id="admin-login-form" class="auth-form-content" style="display: none;">
-                    <div class="form-group">
-                        <label for="admin-email">Admin Email</label>
-                        <input type="email" id="admin-email" class="form-control" placeholder="admin@school.edu" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="admin-password">Password</label>
-                        <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="admin-key">Security Key</label>
-                        <input type="password" id="admin-key" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="submit-btn">Admin Sign In</button>
-                </form>
-
-                <div class="auth-footer">
-                    <p>Don't have an account? <a href="#" onclick="showAuthPage('register')">Sign Up Now</a></p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Registration Page -->
-    <section id="register-page" class="auth-container" style="display: none;">
-        <div class="auth-content">
-            <div class="auth-form">
-                <h2>Create Your Account</h2>
-                <p>Join AI Assignment Evaluator to get started</p>
-
-                <form id="register-form">
-                    <div class="form-group">
-                        <label for="register-name">Full Name</label>
-                        <input type="text" id="register-name" class="form-control" placeholder="John Smith" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-email">Email Address</label>
-                        <input type="email" id="register-email" class="form-control" placeholder="you@school.edu" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password">Password</label>
-                        <input type="password" id="register-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-confirm">Confirm Password</label>
-                        <input type="password" id="register-confirm" class="form-control" placeholder="••••••••" required>
-                    </div>
-
-                    <h4 style="margin: 20px 0 10px; text-align: center;">I am a:</h4>
-                    <div class="role-selector">
-                        <div class="role-option active" onclick="selectRole(this, 'teacher')">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <h4>Teacher</h4>
-                            <p>Educator/Professor</p>
-                        </div>
-                        <div class="role-option" onclick="selectRole(this, 'student')">
-                            <i class="fas fa-user-graduate"></i>
-                            <h4>Student</h4>
-                            <p>Learner</p>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 20px;">
-                        <div class="form-check">
-                            <input type="checkbox" id="terms" class="form-check-input" required>
-                            <label for="terms" class="form-check-label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">Create Account</button>
-                </form>
-
-                <div class="auth-footer">
-                    <p>Already have an account? <a href="#" onclick="showAuthPage('login')">Sign In</a></p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <!-- Footer -->
     <footer>
@@ -1261,77 +1187,28 @@
     </footer>
 
     <script>
-        // Page navigation functions
-        function showAuthPage(page) {
-            document.getElementById('landing-page').style.display = 'none';
-            document.getElementById('login-page').style.display = 'none';
-            document.getElementById('register-page').style.display = 'none';
+        // Toast notification function
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
 
-            if(page === 'login') {
-                document.getElementById('login-page').style.display = 'flex';
-                switchAuthTab('user'); // Show user login by default
-            } else if(page === 'register') {
-                document.getElementById('register-page').style.display = 'flex';
-            } else {
-                document.getElementById('landing-page').style.display = 'block';
-            }
-
-            window.scrollTo(0, 0);
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        function showAdminLogin() {
-            showAuthPage('login');
-            switchAuthTab('admin');
+        function showDemo() {
+            showToast("Demo video will play in a new window", "success");
+            setTimeout(() => {
+                window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
+            }, 1000);
         }
-
-        // Switch between user and admin login
-        function switchAuthTab(tab) {
-            // Update tabs
-            document.querySelectorAll('.auth-tab').forEach(t => {
-                t.classList.toggle('active', t.dataset.tab === tab);
-            });
-
-            // Show the correct form
-            document.getElementById('user-login-form').style.display =
-                tab === 'user' ? 'block' : 'none';
-            document.getElementById('admin-login-form').style.display =
-                tab === 'admin' ? 'block' : 'none';
-        }
-
-        // Role selection function
-        function selectRole(element, role) {
-            document.querySelectorAll('.role-option').forEach(el => {
-                el.classList.remove('active');
-            });
-            element.classList.add('active');
-        }
-
-        // Form submission handlers
-        document.getElementById('user-login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Login functionality will be implemented in the backend');
-        });
-
-        document.getElementById('admin-login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Admin login functionality will be implemented in the backend');
-        });
-
-        document.getElementById('register-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Registration functionality will be implemented in the backend');
-        });
-
-        // Set default role
-        document.addEventListener('DOMContentLoaded', function() {
-            const roleOptions = document.querySelectorAll('.role-option');
-            if(roleOptions.length > 0) {
-                roleOptions[0].click();
-            }
-        });
 
         // Animation on scroll
         document.addEventListener('DOMContentLoaded', function() {
+            // Animation on scroll
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -1341,10 +1218,18 @@
                 });
             }, { threshold: 0.1 });
 
-            // Observe animated elements
             document.querySelectorAll('.feature-card, .role-card, .team-member').forEach(el => {
                 observer.observe(el);
             });
+
+            // Check for login messages
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const messageType = urlParams.get('type');
+
+            if(message && messageType) {
+                showToast(message, messageType);
+            }
         });
     </script>
 </body>

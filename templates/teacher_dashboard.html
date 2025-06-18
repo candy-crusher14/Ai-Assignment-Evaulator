@@ -249,6 +249,15 @@
             background-color: #27ae60;
         }
 
+        .btn-orange {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-orange:hover {
+            background-color: #e67e22;
+        }
+
         /* Dashboard Widgets */
         .dashboard-widgets {
             display: grid;
@@ -499,6 +508,11 @@
             color: var(--primary-blue);
         }
 
+        .status-review {
+            background-color: rgba(155, 89, 182, 0.1);
+            color: var(--primary-purple);
+        }
+
         /* Tabs */
         .tabs {
             display: flex;
@@ -540,6 +554,157 @@
             display: block;
         }
 
+        /* Evaluation Styles */
+        .evaluation-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .evaluation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .evaluation-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .evaluation-method {
+            margin-bottom: 25px;
+        }
+
+        .method-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .method-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            background: var(--light-gray);
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .method-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .method-card.selected {
+            border-color: var(--primary-blue);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .method-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+        }
+
+        .method-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .method-desc {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-column {
+            flex: 1;
+        }
+
+        .results-container {
+            background-color: var(--light-gray);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .score-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .feedback-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .feedback-section h4 {
+            margin-bottom: 10px;
+            color: var(--dark-gray);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--medium-gray);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-green);
+            border-radius: 5px;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--medium-gray);
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary-blue);
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .file-upload i {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
         /* Responsive Design */
         @media (max-width: 992px) {
             .sidebar {
@@ -550,6 +715,14 @@
             }
             .main-content {
                 margin-left: 70px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .method-selector {
+                flex-direction: column;
             }
         }
 
@@ -922,7 +1095,7 @@
                 <div class="tabs">
                     <button class="tab active" onclick="switchEvalTab('pending')">Pending Evaluation</button>
                     <button class="tab" onclick="switchEvalTab('completed')">Completed Evaluations</button>
-                    <button class="tab" onclick="switchEvalTab('reports')">Evaluation Reports</button>
+                    <button class="tab" onclick="switchEvalTab('evaluate')">Evaluate Submission</button>
                 </div>
 
                 <div id="pending-tab" class="tab-content active">
@@ -1013,6 +1186,123 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- New Evaluation Section -->
+                <div id="evaluate-tab" class="tab-content">
+                    <div class="evaluation-container">
+                        <div class="evaluation-header">
+                            <h2 class="evaluation-title">Evaluate Assignment</h2>
+                            <div class="status-badge status-review">In Progress</div>
+                        </div>
+
+                        <div class="evaluation-method">
+                            <h3>Select Evaluation Method</h3>
+                            <div class="method-selector">
+                                <div class="method-card" onclick="selectMethod('gemini')">
+                                    <div class="method-icon">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <h4 class="method-title">AI Evaluation (Gemini API)</h4>
+                                    <p class="method-desc">Use AI to evaluate text-based assignments</p>
+                                </div>
+
+                                <div class="method-card" onclick="selectMethod('document')">
+                                    <div class="method-icon">
+                                        <i class="fas fa-file-contract"></i>
+                                    </div>
+                                    <h4 class="method-title">Document Comparison</h4>
+                                    <p class="method-desc">Compare student work with expected solution</p>
+                                </div>
+                            </div>
+
+                            <!-- Gemini API Evaluation Form -->
+                            <div id="gemini-form" class="evaluation-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="assignment-instructions">Assignment Instructions</label>
+                                    <textarea id="assignment-instructions" class="form-control" placeholder="Enter the assignment instructions">Create a Python function to calculate factorial of a number using recursion. The function should handle edge cases properly.</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="rubric">Evaluation Rubric</label>
+                                    <textarea id="rubric" class="form-control" placeholder="Enter evaluation criteria">1. Correctness (40 points): Does the solution produce correct results?
+2. Edge Cases (20 points): Does it handle 0, negative numbers, and large inputs?
+3. Code Quality (20 points): Is the code clean and well-structured?
+4. Documentation (20 points): Are comments and docstrings provided?</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="student-submission">Student Submission</label>
+                                    <textarea id="student-submission" class="form-control" placeholder="Paste student's work here" style="min-height: 200px;">def factorial(n):
+    if n == 0:
+        return 1
+    else:
+        return n * factorial(n-1)</textarea>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="runGeminiEvaluation()">
+                                    <i class="fas fa-play"></i> Run AI Evaluation
+                                </button>
+                            </div>
+
+                            <!-- Document Comparison Form -->
+                            <div id="document-form" class="evaluation-form" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-column">
+                                        <div class="form-group">
+                                            <label>Expected Solution</label>
+                                            <div class="file-upload" onclick="document.getElementById('expected-file').click()">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <p>Click to upload expected solution document</p>
+                                                <div id="expected-file-name" class="file-name">No file selected</div>
+                                                <input type="file" id="expected-file" style="display: none;" onchange="handleFileSelect('expected')">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-column">
+                                        <div class="form-group">
+                                            <label>Student Submission</label>
+                                            <div class="file-upload" onclick="document.getElementById('student-file').click()">
+                                                <i class="fas fa-file-upload"></i>
+                                                <p>Click to upload student submission</p>
+                                                <div id="student-file-name" class="file-name">No file selected</div>
+                                                <input type="file" id="student-file" style="display: none;" onchange="handleFileSelect('student')">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="comparison-settings">Comparison Settings</label>
+                                    <select id="comparison-settings" class="form-control">
+                                        <option value="strict">Strict Comparison (character-level)</option>
+                                        <option value="semantic">Semantic Comparison (meaning-based)</option>
+                                        <option value="code">Code Structure (for programming assignments)</option>
+                                    </select>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="runDocumentComparison()">
+                                    <i class="fas fa-exchange-alt"></i> Compare Documents
+                                </button>
+                            </div>
+
+                            <!-- Results Container -->
+                            <div id="evaluation-results" class="results-container">
+                                <h3>Evaluation Results</h3>
+                                <div id="results-content"></div>
+
+                                <div class="card-footer" style="margin-top: 20px;">
+                                    <button class="btn btn-green" id="save-evaluation" style="display: none;">
+                                        <i class="fas fa-save"></i> Save Evaluation
+                                    </button>
+                                    <button class="btn btn-orange" id="regenerate" style="display: none;">
+                                        <i class="fas fa-sync"></i> Regenerate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1161,26 +1451,273 @@
         function switchEvalTab(tab) {
             // Update tabs
             document.querySelectorAll('#evaluation-hub .tab').forEach(t => {
-                t.classList.toggle('active', t.textContent.toLowerCase().includes(tab));
+                t.classList.remove('active');
+            });
+
+            // Activate clicked tab
+            event.currentTarget.classList.add('active');
+
+            // Hide all eval tab contents
+            document.querySelectorAll('#evaluation-hub .tab-content').forEach(tc => {
+                tc.classList.remove('active');
             });
 
             // Show the correct content
-            document.getElementById('pending-tab').classList.toggle('active', tab === 'pending');
-            document.getElementById('completed-tab').classList.toggle('active', tab === 'completed');
-            document.getElementById('reports-tab').classList.toggle('active', tab === 'reports');
+            document.getElementById(tab + '-tab').classList.add('active');
+
+            // Reset evaluation form if switching to evaluate tab
+            if (tab === 'evaluate') {
+                resetEvaluationForm();
+            }
         }
 
         // Student tab switching
         function switchStudentTab(tab) {
             // Update tabs
             document.querySelectorAll('#student-view .tab').forEach(t => {
-                t.classList.toggle('active', t.textContent.toLowerCase().includes(tab));
+                t.classList.remove('active');
+            });
+
+            // Activate clicked tab
+            event.currentTarget.classList.add('active');
+
+            // Hide all student tab contents
+            document.querySelectorAll('#student-view .tab-content').forEach(tc => {
+                tc.classList.remove('active');
             });
 
             // Show the correct content
-            document.getElementById('classroom-tab').classList.toggle('active', tab === 'classroom');
-            document.getElementById('assignments-tab').classList.toggle('active', tab === 'assignments');
-            document.getElementById('performance-tab').classList.toggle('active', tab === 'performance');
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+
+        // Evaluation method selection
+        function selectMethod(method) {
+            // Update UI
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // Show the correct form
+            document.getElementById('gemini-form').style.display = 'none';
+            document.getElementById('document-form').style.display = 'none';
+            document.getElementById(method + '-form').style.display = 'block';
+
+            // Hide results
+            document.getElementById('evaluation-results').style.display = 'none';
+        }
+
+        // Handle file selection
+        function handleFileSelect(type) {
+            const fileInput = document.getElementById(type + '-file');
+            const fileName = document.getElementById(type + '-file-name');
+
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+            } else {
+                fileName.textContent = 'No file selected';
+            }
+        }
+
+        // Reset evaluation form
+        function resetEvaluationForm() {
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('gemini-form').style.display = 'none';
+            document.getElementById('document-form').style.display = 'none';
+            document.getElementById('evaluation-results').style.display = 'none';
+            document.getElementById('save-evaluation').style.display = 'none';
+            document.getElementById('regenerate').style.display = 'none';
+        }
+
+        // Run Gemini API evaluation
+        function runGeminiEvaluation() {
+            const resultsContainer = document.getElementById('evaluation-results');
+            const resultsContent = document.getElementById('results-content');
+
+            // Show loading state
+            resultsContent.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-blue);"></i>
+                    <p style="margin-top: 15px;">Evaluating submission with Gemini API...</p>
+                </div>
+            `;
+            resultsContainer.style.display = 'block';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                // Display results
+                resultsContent.innerHTML = `
+                    <div class="score-display">Score: 85/100</div>
+
+                    <div class="feedback-section">
+                        <h4>Overall Feedback</h4>
+                        <p>The solution correctly implements the factorial function using recursion and handles the base case of n=0. However, it lacks input validation and proper documentation.</p>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Rubric Evaluation</h4>
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Correctness (40/40)</span>
+                                <span>40 points</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Edge Cases (15/20)</span>
+                                <span>15 points</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                            <p style="margin-top: 5px; color: var(--warning);">Solution does not handle negative numbers or large inputs</p>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Code Quality (20/20)</span>
+                                <span>20 points</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Documentation (10/20)</span>
+                                <span>10 points</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 50%"></div>
+                            </div>
+                            <p style="margin-top: 5px; color: var(--warning);">Missing docstring and comments</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Detailed Analysis</h4>
+                        <p>The recursive implementation is correct and efficient. However, the function does not validate inputs and would enter infinite recursion with negative numbers. For large inputs, Python recursion limits would be exceeded. Adding input validation and converting to iterative approach would improve robustness.</p>
+                        <p>Documentation is minimal. Adding a docstring explaining the function's purpose and parameters would improve maintainability.</p>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Suggestions for Improvement</h4>
+                        <ul>
+                            <li>Add input validation to handle negative numbers and large inputs</li>
+                            <li>Consider iterative implementation for better performance with large numbers</li>
+                            <li>Add a docstring to describe the function</li>
+                            <li>Include comments explaining the base case and recursion</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Show action buttons
+                document.getElementById('save-evaluation').style.display = 'inline-flex';
+                document.getElementById('regenerate').style.display = 'inline-flex';
+            }, 2000);
+        }
+
+        // Run document comparison
+        function runDocumentComparison() {
+            const resultsContainer = document.getElementById('evaluation-results');
+            const resultsContent = document.getElementById('results-content');
+
+            // Show loading state
+            resultsContent.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-blue);"></i>
+                    <p style="margin-top: 15px;">Comparing documents...</p>
+                </div>
+            `;
+            resultsContainer.style.display = 'block';
+
+            // Simulate comparison process
+            setTimeout(() => {
+                // Display results
+                resultsContent.innerHTML = `
+                    <div class="score-display">Similarity: 78%</div>
+
+                    <div class="feedback-section">
+                        <h4>Document Comparison Results</h4>
+                        <p>The student submission matches the expected solution in structure and key concepts but differs in implementation details and formatting.</p>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Key Differences</h4>
+                        <ul>
+                            <li>Variable naming conventions differ (camelCase vs snake_case)</li>
+                            <li>Missing error handling for invalid inputs</li>
+                            <li>Student solution uses recursion while expected solution uses iteration</li>
+                            <li>Formatting inconsistencies in 5 sections</li>
+                            <li>Missing documentation comments in 3 sections</li>
+                        </ul>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Similarity Breakdown</h4>
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Code Structure</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85%"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Functionality</span>
+                                <span>95%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 95%"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Documentation</span>
+                                <span>45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Code Style</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Recommendations</h4>
+                        <ul>
+                            <li>Standardize variable naming to match project conventions</li>
+                            <li>Add error handling for edge cases</li>
+                            <li>Improve code comments and documentation</li>
+                            <li>Consider performance implications of recursion vs iteration</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Show action buttons
+                document.getElementById('save-evaluation').style.display = 'inline-flex';
+                document.getElementById('regenerate').style.display = 'inline-flex';
+            }, 2500);
         }
 
         // Add rubric criterion
@@ -1209,6 +1746,9 @@
                     this.parentElement.remove();
                 });
             });
+
+            // Set default method
+            document.querySelectorAll('.method-card')[0].click();
         });
     </script>
 </body>
