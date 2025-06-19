@@ -162,6 +162,7 @@
             height: calc(100vh - 70px);
             position: fixed;
             overflow-y: auto;
+            transition: width 0.3s ease;
         }
 
         .sidebar-title {
@@ -202,6 +203,7 @@
             flex: 1;
             margin-left: 250px;
             padding: 30px;
+            transition: margin-left 0.3s ease;
         }
 
         .page-header {
@@ -734,6 +736,10 @@
             .sidebar {
                 width: 0;
                 overflow: hidden;
+                z-index: 900;
+            }
+            .sidebar.active {
+                width: 250px;
             }
             .main-content {
                 margin-left: 0;
@@ -741,12 +747,10 @@
             }
         }
 
-            ol, ul {
-                padding-left: 0;  /* Already fixed */
-                margin: 0;
-            }
-
-
+        ol, ul {
+            padding-left: 0;
+            margin: 0;
+        }
 
         .assignment-card {
             border-left: 4px solid var(--primary-blue);
@@ -813,9 +817,35 @@
             border-left: 4px solid #ffc107;
         }
 
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 15px;
+            z-index: 1100;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Header/Navigation -->
     <header>
         <div class="container">
@@ -1515,7 +1545,7 @@
                     <h5 class="modal-title" id="overrideModalLabel">Override Score</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="overrideForm" method="POST" action="{{ url_for('override_score') }}">
+                <form id="overrideForm" method="POST" action="{{ url_for('override_score', submission_id=0) }}">
                     <input type="hidden" id="submissionId" name="submission_id">
                     <div class="modal-body">
                         <div class="mb-3">
@@ -1553,7 +1583,25 @@
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+
+            // Find the menu item that triggered this tab and activate it
+            const menuItems = document.querySelectorAll('.menu-item');
+            for (let item of menuItems) {
+                if (item.getAttribute('onclick') === `showTab('${tabId}')`) {
+                    item.classList.add('active');
+                    break;
+                }
+            }
+
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('active');
+            }
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
         }
 
         // Evaluation tab switching
@@ -1591,18 +1639,21 @@
 
         // Set up the override modal
         const overrideModal = document.getElementById('overrideModal');
-        overrideModal.addEventListener('show.bs.modal', function (event) {
+        overrideModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
             const submissionId = button.getAttribute('data-submission-id');
             const currentScore = button.getAttribute('data-current-score');
             const maxScore = button.getAttribute('data-max-score');
 
-            const form = document.getElementById('overrideForm');
+            // Update form elements
             document.getElementById('submissionId').value = submissionId;
-
             document.getElementById('newScore').value = currentScore;
             document.getElementById('newScore').max = maxScore;
             document.getElementById('maxScore').textContent = maxScore;
+
+            // Update form action with correct submission ID
+            const form = document.getElementById('overrideForm');
+            form.action = `/teacher/override/${submissionId}`;
         });
 
         // Simulate AI evaluation
@@ -1626,14 +1677,14 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-
             // Initialize expected answer field
             toggleExpectedAnswerField();
+
+            // Set up tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
     </script>
 </body>

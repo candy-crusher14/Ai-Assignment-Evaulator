@@ -5,8 +5,11 @@ import string
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_similarity
 import warnings
 from collections import defaultdict
 from sqlalchemy import func, and_, or_, text
@@ -17,7 +20,7 @@ import hashlib
 import re
 import random
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -37,7 +40,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
 # Set the template folder
 app.template_folder = 'templates'
 
-# SQLAlchemy Configuration - Use SQLite in-memory for testing
+# SQLAlchemy Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///exam_system.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -52,21 +55,23 @@ genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 # gemini_model = (genai.
 #                 GenerativeModel('gemini-pro'))
 
-# Define allowed departments and years for students
+# Define allowed departments and years
 DEPARTMENTS = ('Computer Science', 'Information Technology')
 YEARS = (1, 2, 3, 4)
+SEMESTERS = ('Spring', 'Summer', 'Fall', 'Winter')
 
 
-# Define database models
+# Database Models
 class Admin(db.Model):
     __tablename__ = 'admins'
-    admin_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
 
+
 class Student(db.Model):
     __tablename__ = 'students'
-    student_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     full_name = db.Column(db.String(120))
@@ -74,89 +79,143 @@ class Student(db.Model):
     department = db.Column(db.String(80), nullable=False)
     year = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
+    submissions = db.relationship('Submission', backref='student', lazy=True)
+    enrollments = db.relationship('Enrollment', backref='student', lazy=True)
+
 
 class Teacher(db.Model):
     __tablename__ = 'teachers'
-    teacher_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     full_name = db.Column(db.String(120))
     email = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
+    classrooms = db.relationship('Classroom', backref='teacher', lazy=True)
+    assignments = db.relationship('Assignment', backref='teacher', lazy=True)
+    overrides = db.relationship('Submission', foreign_keys='Submission.overridden_by', backref='overriding_teacher',
+                                lazy=True)
 
 
-class Test(db.Model):
-    __tablename__ = 'tests'
-    test_id = db.Column(db.Integer, primary_key=True)
-    test_name = db.Column(db.String(200), nullable=False)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.teacher_id'), nullable=False)
+class Classroom(db.Model):
+    __tablename__ = 'classrooms'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    department = db.Column(db.String(80), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
-    duration = db.Column(db.Integer)  # Duration in minutes
-    instructions = db.Column(db.Text)
-    invite_code = db.Column(db.String(8), unique=True, nullable=False,
-                            default=lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=6)))
-    # Add department and year fields
-    department = db.Column(db.String(80), nullable=False, default='Computer Science')
-    year = db.Column(db.Integer, nullable=False, default=1)
+    assignments = db.relationship('Assignment', backref='classroom', lazy=True)
+    enrollments = db.relationship('Enrollment', backref='classroom', lazy=True)
+
+    @property
+    def enrollments_count(self):
+        return len(self.enrollments)
+
+    @property
+    def active_assignments(self):
+        return [a for a in self.assignments if a.submission_deadline > datetime.now()]
+
+    @property
+    def completed_assignments(self):
+        return [a for a in self.assignments if a.submission_deadline <= datetime.now()]
+
+    @property
+    def recent_assignments(self):
+        return sorted(self.assignments, key=lambda a: a.created_at, reverse=True)[:3]
 
 
-class Question(db.Model):
-    __tablename__ = 'questions'
-    question_id = db.Column(db.Integer, primary_key=True)
-    question_text = db.Column(db.Text, nullable=False)
-    test_id = db.Column(db.Integer, db.ForeignKey('tests.test_id'), nullable=False)
-    max_score = db.Column(db.Integer, default=10)
+class Assignment(db.Model):
+    __tablename__ = 'assignments'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    classroom_id = db.Column(db.Integer, db.ForeignKey('classrooms.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    instructions = db.Column(db.Text, nullable=False)
+    submission_deadline = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=func.current_timestamp())
+    semester = db.Column(db.String(50), nullable=False)
+    evaluation_method = db.Column(db.String(50), nullable=False, default='gemini')
+    expected_answer = db.Column(db.Text)
+    max_score = db.Column(db.Float, default=10.0)
+    submissions = db.relationship('Submission', backref='assignment', lazy=True)
+
+    @property
+    def is_completed(self):
+        return self.submission_deadline < datetime.now()
+
+    @property
+    def submissions_submitted(self):
+        return len([s for s in self.submissions if s.submitted_at is not None])
+
+    @property
+    def submissions_evaluated(self):
+        return len([s for s in self.submissions if s.evaluated_at is not None])
+
+    @property
+    def submissions_pending_eval(self):
+        return self.submissions_submitted - self.submissions_evaluated
+
+    @property
+    def submissions_not_submitted(self):
+        return self.classroom.enrollments_count - self.submissions_submitted
+
+    @property
+    def submission_percentage(self):
+        if self.classroom.enrollments_count == 0:
+            return 0
+        return (self.submissions_submitted / self.classroom.enrollments_count) * 100
+
+    @property
+    def evaluation_percentage(self):
+        if self.submissions_submitted == 0:
+            return 0
+        return (self.submissions_evaluated / self.submissions_submitted) * 100
+
+    @property
+    def submission_status(self):
+        if self.is_completed:
+            return "Completed"
+        return "Active"
 
 
-class ExpectedAnswer(db.Model):
-    __tablename__ = 'expected_answers'
-    answer_id = db.Column(db.Integer, primary_key=True)
+class Submission(db.Model):
+    __tablename__ = 'submissions'
+    id = db.Column(db.Integer, primary_key=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
     answer_text = db.Column(db.Text, nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('questions.question_id'), nullable=False)
-
-
-class StudentAnswer(db.Model):
-    __tablename__ = 'student_answers'
-    answer_id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'), nullable=False)
-    test_id = db.Column(db.Integer, db.ForeignKey('tests.test_id'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('questions.question_id'), nullable=False)
-    answer_text = db.Column(db.Text, nullable=False)
-    score = db.Column(db.Float)
+    submitted_at = db.Column(db.DateTime)
     evaluated_at = db.Column(db.DateTime)
-    evaluation_method = db.Column(db.String(50))  # 'gemini' or 'algorithm'
-    override_score = db.Column(db.Float, nullable=True)
-    override_reason = db.Column(db.Text, nullable=True)
-    overridden_at = db.Column(db.DateTime, nullable=True)
-    overridden_by = db.Column(db.Integer, db.ForeignKey('teachers.teacher_id'), nullable=True)
-    gemini_comment = db.Column(db.Text, nullable=True)
+    score = db.Column(db.Float)
+    evaluation_method = db.Column(db.String(50))
+    gemini_comment = db.Column(db.Text)
+    override_score = db.Column(db.Float)
+    override_reason = db.Column(db.Text)
+    overridden_at = db.Column(db.DateTime)
+    overridden_by = db.Column(db.Integer, db.ForeignKey('teachers.id'))
+
+    @property
+    def display_score(self):
+        return self.override_score if self.override_score is not None else self.score
 
 
 class Enrollment(db.Model):
     __tablename__ = 'enrollments'
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'), nullable=False)
-    test_id = db.Column(db.Integer, db.ForeignKey('tests.test_id'), nullable=False)
-    __table_args__ = (db.UniqueConstraint('student_id', 'test_id', name='_stud_test_uc'),)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
+    classroom_id = db.Column(db.Integer, db.ForeignKey('classrooms.id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('student_id', 'classroom_id', name='_stud_classroom_uc'),)
 
 
-# Set English stopwords
+# Helper Functions
 EN_STOPWORDS = set(stopwords.words("english"))
-
-# Preprocess text
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from nltk.sentiment import SentimentIntensityAnalyzer
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_similarity
-from sklearn.naive_bayes import MultinomialNB
-
-lemmatizer = WordNetLemmatizer()
+lemmatizer = nltk.stem.WordNetLemmatizer()
 sia = SentimentIntensityAnalyzer()
 
 
 def preprocess_text(text):
-    tokens = word_tokenize(text)
+    tokens = nltk.word_tokenize(text)
     tokens = [lemmatizer.lemmatize(token.lower()) for token in tokens if token.isalnum()]
     tokens = [token for token in tokens if token not in EN_STOPWORDS]
     return tokens
@@ -219,23 +278,19 @@ def semantic_similarity_score(expected_answer, student_answer):
 
 
 def coherence_score(expected_answer, student_answer):
-    len_expected = len(word_tokenize(expected_answer))
-    len_student = len(word_tokenize(student_answer))
+    len_expected = len(nltk.word_tokenize(expected_answer))
+    len_student = len(nltk.word_tokenize(student_answer))
     if max(len_expected, len_student) == 0:
         return 0.0
     return min(len_expected, len_student) / max(len_expected, len_student)
 
 
 def relevance_score(expected_answer, student_answer):
-    expected_tokens = set(word_tokenize(expected_answer.lower()))
-    student_tokens = set(word_tokenize(student_answer.lower()))
+    expected_tokens = set(nltk.word_tokenize(expected_answer.lower()))
+    student_tokens = set(nltk.word_tokenize(student_answer.lower()))
     if not expected_tokens:
         return 0.0
     return len(expected_tokens & student_tokens) / len(expected_tokens)
-
-
-def get_display_score(answer):
-    return answer.override_score if answer.override_score is not None else answer.score
 
 
 def generate_expected_feedback(student_answer, expected_answer):
@@ -265,7 +320,6 @@ def evaluate_with_algorithm(expected, response, max_score=10):
     ]
 
     weights = [0.15, 0.1, 0.1, 0.05, 0.1, 0.1, 0.1, 0.1, 0.1]
-
     final_score = sum(score * weight for score, weight in zip(scores, weights))
     return min(round(final_score, 2), max_score), "algorithm"
 
@@ -302,47 +356,18 @@ def evaluate_with_gemini(expected, response, question_text, max_score=10):
     return score, "algorithm", "Evaluation completed using backup method"
 
 
-def evaluate_answer(student_answer_record):
-    question = Question.query.get(student_answer_record.question_id)
-    expected_answer = ExpectedAnswer.query.filter_by(
-        question_id=student_answer_record.question_id
-    ).first()
-
-    if not expected_answer:
-        return 0, "No expected answer found", ""
-
-    max_score = question.max_score if question else 10
-
-    evaluation_method = request.form.get('evaluation_method', 'algorithm')
-
-    if evaluation_method == 'gemini':
-        score, method, comment = evaluate_with_gemini(
-            expected_answer.answer_text,
-            student_answer_record.answer_text,
-            question.question_text if question else "",
-            max_score
-        )
-        return score, method, comment
-
-    score, method = evaluate_with_algorithm(
-        expected_answer.answer_text,
-        student_answer_record.answer_text,
-        max_score
-    )
-    return score, method, ""
-
-
-def check_test_taken(student_id, test_id):
-    return StudentAnswer.query.filter_by(
-        student_id=student_id,
-        test_id=test_id
-    ).first() is not None
-
-
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def check_assignment_taken(student_id, assignment_id):
+    return Submission.query.filter_by(
+        student_id=student_id,
+        assignment_id=assignment_id
+    ).first() is not None
+
+
+# Routes
 @app.route('/')
 def index():
     return render_template('homepage.html')
@@ -372,7 +397,7 @@ def admin_login():
         admin = Admin.query.filter_by(username=username, password=password).first()
         if admin:
             session['admin_logged_in'] = True
-            session['admin_id'] = admin.admin_id
+            session['admin_id'] = admin.id
             return redirect(url_for('admin_dashboard'))
         return render_template('admin_login.html', error='Invalid credentials')
     return render_template('login.html')
@@ -386,8 +411,8 @@ def admin_dashboard():
     stats = {
         'students': Student.query.count(),
         'teachers': Teacher.query.count(),
-        'tests': Test.query.count(),
-        'recent_tests': Test.query.order_by(Test.created_at.desc()).limit(5).all()
+        'classrooms': Classroom.query.count(),
+        'recent_assignments': Assignment.query.order_by(Assignment.created_at.desc()).limit(5).all()
     }
     return render_template('admin_dashboard.html', stats=stats)
 
@@ -410,13 +435,13 @@ def admin_teachers():
     return render_template('admin_teachers.html', teachers=teachers)
 
 
-@app.route('/admin/tests', methods=['GET'])
-def admin_tests():
+@app.route('/admin/classrooms', methods=['GET'])
+def admin_classrooms():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    tests = db.session.query(Test, Teacher).join(Teacher).all()
-    return render_template('admin_tests.html', tests=tests)
+    classrooms = db.session.query(Classroom, Teacher).join(Teacher).all()
+    return render_template('admin_classrooms.html', classrooms=classrooms)
 
 
 @app.route('/admin/logout')
@@ -455,7 +480,7 @@ def teacher_register():
                     db.session.add(new_teacher)
                     db.session.commit()
                     session['teacher_logged_in'] = True
-                    session['teacher_id'] = new_teacher.teacher_id
+                    session['teacher_id'] = new_teacher.id
                     return redirect(url_for('teacher_dashboard'))
                 except Exception as e:
                     db.session.rollback()
@@ -473,7 +498,7 @@ def teacher_login():
         teacher = Teacher.query.filter_by(username=username, password=password).first()
         if teacher:
             session['teacher_logged_in'] = True
-            session['teacher_id'] = teacher.teacher_id
+            session['teacher_id'] = teacher.id
             return redirect(url_for('teacher_dashboard'))
         return render_template('teacher_login.html', error='Invalid credentials')
     return render_template('teacher_login.html')
@@ -487,284 +512,264 @@ def teacher_dashboard():
     teacher_id = session['teacher_id']
     teacher = Teacher.query.get(teacher_id)
 
-    # Get all tests for this teacher
-    tests = Test.query.filter_by(teacher_id=teacher_id).all()
+    # Get all classrooms for this teacher
+    classrooms = Classroom.query.filter_by(teacher_id=teacher_id).all()
 
-    # Get recent tests (5 most recent)
-    recent_tests = Test.query.filter_by(teacher_id=teacher_id) \
-        .order_by(Test.created_at.desc()).limit(5).all()
+    # Get all assignments for this teacher
+    assignments = Assignment.query.filter_by(teacher_id=teacher_id).all()
+
+    # Get recent assignments (5 most recent)
+    recent_assignments = Assignment.query.filter_by(teacher_id=teacher_id) \
+        .order_by(Assignment.created_at.desc()).limit(5).all()
 
     # Calculate total enrollments
-    enrollment_count = Enrollment.query.filter(
-        Enrollment.test_id.in_([t.test_id for t in tests])
-    ).count()
+    enrollment_count = sum([c.enrollments_count for c in classrooms])
 
-    # Get pending evaluations
-    pending_answers = StudentAnswer.query.filter(
-        StudentAnswer.score == None,
-        StudentAnswer.test_id.in_([t.test_id for t in tests])
+    # Get pending submissions
+    pending_submissions = Submission.query.filter(
+        Submission.score == None,
+        Submission.assignment_id.in_([a.id for a in assignments])
     ).all()
 
-    # Get completed evaluations
-    completed_answers = StudentAnswer.query.filter(
-        StudentAnswer.score != None,
-        StudentAnswer.test_id.in_([t.test_id for t in tests])
+    # Get completed submissions
+    completed_submissions = Submission.query.filter(
+        Submission.score != None,
+        Submission.assignment_id.in_([a.id for a in assignments])
     ).all()
+
+    # Get active assignments (deadline in future)
+    active_assignments = [a for a in assignments if a.submission_deadline > datetime.now()]
 
     return render_template('teacher_dashboard.html',
                            teacher=teacher,
-                           tests=tests,
-                           recent_tests=recent_tests,
+                           classrooms=classrooms,
+                           assignments=assignments,
+                           recent_assignments=recent_assignments,
                            total_enrollments=enrollment_count,
-                           pending_evaluations=len(pending_answers),
-                           pending_answers=pending_answers,
-                           completed_answers=completed_answers
-                           )
+                           pending_evaluations=len(pending_submissions),
+                           pending_submissions=pending_submissions,
+                           completed_submissions=completed_submissions,
+                           active_assignments=active_assignments)
 
-@app.route('/teacher/tests', methods=['GET'])
-def teacher_tests():
+
+@app.route('/teacher/classrooms', methods=['GET'])
+def teacher_classrooms():
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    tests = Test.query.filter_by(teacher_id=teacher_id).all()
-    return render_template('teacher_tests.html', tests=tests)
+    classrooms = Classroom.query.filter_by(teacher_id=teacher_id).all()
+    return render_template('teacher_classrooms.html', classrooms=classrooms)
 
 
-@app.route('/teacher/test/create', methods=['GET', 'POST'])
-def create_test():
+@app.route('/teacher/classroom/create', methods=['GET', 'POST'])
+def create_classroom():
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    teacher = Teacher.query.get(teacher_id)
 
     if request.method == 'POST':
-        test_name = request.form['test_name']
-        instructions = request.form.get('instructions', '')
-        duration = int(request.form.get('duration', 60))
-        # Add department and year to test creation
-        department = request.form.get('department', 'Computer Science')
-        year = int(request.form.get('year', 1))
+        name = request.form['name']
+        department = request.form['department']
+        year = int(request.form['year'])
 
-        new_test = Test(
-            test_name=test_name,
+        new_classroom = Classroom(
+            name=name,
             teacher_id=teacher_id,
-            instructions=instructions,
-            duration=duration,
             department=department,
             year=year
         )
 
         try:
-            db.session.add(new_test)
+            db.session.add(new_classroom)
             db.session.commit()
-            flash('Test created successfully!', 'success')
-            return redirect(url_for('edit_test', test_id=new_test.test_id))
+            flash('Classroom created successfully!', 'success')
+            return redirect(url_for('teacher_classrooms'))
         except Exception as e:
             db.session.rollback()
-            return render_template('create_test.html', error=f'Failed to create test: {str(e)}')
+            return render_template('create_classroom.html', error=f'Failed to create classroom: {str(e)}')
 
-    # Pass departments and years to template
-    return render_template('create_test.html', departments=DEPARTMENTS, years=YEARS)
-
+    return render_template('create_classroom.html', departments=DEPARTMENTS, years=YEARS)
 
 
-@app.route('/teacher/test/<int:test_id>/edit', methods=['GET', 'POST'])
-def edit_test(test_id):
+@app.route('/teacher/assignment/create', methods=['GET', 'POST'])
+def create_assignment():
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    test = Test.query.filter_by(test_id=test_id, teacher_id=teacher_id).first()
-
-    if not test:
-        flash('Test not found or you do not have permission', 'error')
-        return redirect(url_for('teacher_tests'))
-
-    questions = Question.query.filter_by(test_id=test_id).all()
-    question_answers = {}
-
-    for question in questions:
-        answers = ExpectedAnswer.query.filter_by(question_id=question.question_id).all()
-        question_answers[question.question_id] = answers
+    teacher = Teacher.query.get(teacher_id)
+    classrooms = Classroom.query.filter_by(teacher_id=teacher_id).all()
 
     if request.method == 'POST':
-        for question in questions:
-            question_text = request.form.get(f'question_{question.question_id}')
-            if question_text:
-                question.question_text = question_text
+        title = request.form['title']
+        classroom_id = int(request.form['classroom_id'])
+        instructions = request.form['instructions']
+        deadline_days = int(request.form['deadline_days'])
+        semester = request.form['semester']
+        evaluation_method = request.form['evaluation_method']
+        expected_answer = request.form.get('expected_answer', '')
+        max_score = float(request.form.get('max_score', 10.0))
 
-            for answer in answers:
-                answer_text = request.form.get(f'answer_{answer.answer_id}')
-                if answer_text:
-                    answer.answer_text = answer_text
+        # Calculate deadline
+        submission_deadline = datetime.now() + timedelta(days=deadline_days)
 
-        new_questions = request.form.getlist('new_question[]')
-        new_question_answers = request.form.getlist('new_expected_answers[]')
-
-        for i, question_text in enumerate(new_questions):
-            if question_text.strip():
-                new_question = Question(
-                    question_text=question_text,
-                    test_id=test_id,
-                    max_score=int(request.form.getlist('new_max_score[]')[i])
-                )
-                db.session.add(new_question)
-                db.session.flush()
-
-                answers = new_question_answers[i].split('|')
-                for answer_text in answers:
-                    if answer_text.strip():
-                        new_answer = ExpectedAnswer(
-                            answer_text=answer_text.strip(),
-                            question_id=new_question.question_id
-                        )
-                        db.session.add(new_answer)
+        new_assignment = Assignment(
+            title=title,
+            classroom_id=classroom_id,
+            teacher_id=teacher_id,
+            instructions=instructions,
+            submission_deadline=submission_deadline,
+            semester=semester,
+            evaluation_method=evaluation_method,
+            expected_answer=expected_answer,
+            max_score=max_score
+        )
 
         try:
+            db.session.add(new_assignment)
             db.session.commit()
-            flash('Test updated successfully!', 'success')
-            return redirect(url_for('edit_test', test_id=test_id))
+            flash('Assignment created successfully!', 'success')
+            return redirect(url_for('teacher_dashboard'))
         except Exception as e:
             db.session.rollback()
-            return render_template('edit_test.html', test=test, questions=questions,
-                                   question_answers=question_answers, error=f'Update failed: {str(e)}')
+            return render_template('create_assignment.html',
+                                   classrooms=classrooms,
+                                   semesters=SEMESTERS,
+                                   error=f'Failed to create assignment: {str(e)}')
 
-    return render_template('edit_test.html', test=test, questions=questions, question_answers=question_answers)
+    return render_template('create_assignment.html',
+                           classrooms=classrooms,
+                           semesters=SEMESTERS)
 
 
-@app.route('/teacher/test/<int:test_id>/evaluate', methods=['GET'])
-def evaluate_test(test_id):
+@app.route('/teacher/assignment/<int:assignment_id>/evaluate', methods=['GET'])
+def evaluate_assignment(assignment_id):
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    test = Test.query.filter_by(test_id=test_id, teacher_id=teacher_id).first()
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=teacher_id).first()
 
-    if not test:
-        flash('Test not found or you do not have permission', 'error')
-        return redirect(url_for('teacher_tests'))
+    if not assignment:
+        flash('Assignment not found or you do not have permission', 'error')
+        return redirect(url_for('teacher_dashboard'))
 
-    student_answers = StudentAnswer.query.filter_by(test_id=test_id).all()
+    submissions = Submission.query.filter_by(assignment_id=assignment_id).all()
 
-    for answer in student_answers:
-        if not answer.score:
-            score, method, comment = evaluate_answer(answer)
-            answer.score = score
-            answer.evaluation_method = method
-            answer.evaluated_at = func.current_timestamp()
-
-            if method == 'gemini' and comment:
-                answer.gemini_comment = comment
+    for submission in submissions:
+        if not submission.score:
+            if assignment.evaluation_method == 'gemini':
+                score, method, comment = evaluate_with_gemini(
+                    assignment.expected_answer,
+                    submission.answer_text,
+                    assignment.instructions,
+                    assignment.max_score
+                )
+                submission.score = score
+                submission.evaluation_method = method
+                submission.gemini_comment = comment
+            else:
+                score, method = evaluate_with_algorithm(
+                    assignment.expected_answer,
+                    submission.answer_text,
+                    assignment.max_score
+                )
+                submission.score = score
+                submission.evaluation_method = method
+            submission.evaluated_at = func.current_timestamp()
 
     try:
         db.session.commit()
-        flash('Answers evaluated successfully!', 'success')
+        flash('Submissions evaluated successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Evaluation failed: {str(e)}', 'error')
 
-    return redirect(url_for('view_test_results', test_id=test_id))
+    return redirect(url_for('view_assignment_results', assignment_id=assignment_id))
 
 
-@app.route('/teacher/test/<int:test_id>/results', methods=['GET'])
-def view_test_results(test_id):
+@app.route('/teacher/assignment/<int:assignment_id>/results', methods=['GET'])
+def view_assignment_results(assignment_id):
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    test = Test.query.filter_by(test_id=test_id, teacher_id=teacher_id).first()
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=teacher_id).first()
 
-    if not test:
-        flash('Test not found or you do not have permission', 'error')
-        return redirect(url_for('teacher_tests'))
+    if not assignment:
+        flash('Assignment not found or you do not have permission', 'error')
+        return redirect(url_for('teacher_dashboard'))
 
     results = db.session.query(
-        StudentAnswer,
-        Student,
-        Question
-    ).join(Student, StudentAnswer.student_id == Student.student_id
-           ).join(Question, StudentAnswer.question_id == Question.question_id
-                  ).filter(StudentAnswer.test_id == test_id).all()
+        Submission,
+        Student
+    ).join(Student, Submission.student_id == Student.id
+           ).filter(Submission.assignment_id == assignment_id).all()
 
-    student_results = defaultdict(lambda: {'student': None, 'answers': [], 'total': 0})
+    student_results = defaultdict(lambda: {'student': None, 'submissions': []})
 
-    for answer, student, question in results:
-        if not student_results[student.student_id]['student']:
-            student_results[student.student_id]['student'] = student
+    for submission, student in results:
+        if not student_results[student.id]['student']:
+            student_results[student.id]['student'] = student
 
-        display_score = get_display_score(answer)
-        student_results[student.student_id]['answers'].append({
-            'question': question,
-            'answer': answer,
+        display_score = submission.display_score
+        student_results[student.id]['submissions'].append({
+            'submission': submission,
             'display_score': display_score
         })
-        student_results[student.student_id]['total'] += display_score if display_score else 0
 
-    return render_template('test_results.html', test=test, student_results=student_results)
+    return render_template('assignment_results.html', assignment=assignment, student_results=student_results)
 
 
-@app.route('/teacher/override/<int:answer_id>', methods=['GET', 'POST'])
-def override_score(answer_id):
+@app.route('/teacher/override/<int:submission_id>', methods=['GET', 'POST'])
+def override_score(submission_id):
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
-    answer = StudentAnswer.query.get_or_404(answer_id)
-    question = Question.query.get(answer.question_id)
-    test = Test.query.get(answer.test_id)
-    student = Student.query.get(answer.student_id)
+    submission = Submission.query.get_or_404(submission_id)
+    assignment = Assignment.query.get(submission.assignment_id)
+    student = Student.query.get(submission.student_id)
 
     if request.method == 'POST':
         try:
             new_score = float(request.form['new_score'])
             reason = request.form['reason']
 
-            max_score = question.max_score if question else 10
-            if new_score < 0 or new_score > max_score:
-                flash(f'Score must be between 0 and {max_score}', 'error')
-                return redirect(url_for('override_score', answer_id=answer_id))
+            if new_score < 0 or new_score > assignment.max_score:
+                flash(f'Score must be between 0 and {assignment.max_score}', 'error')
+                return redirect(url_for('override_score', submission_id=submission_id))
 
-            answer.override_score = new_score
-            answer.override_reason = reason
-            answer.overridden_at = func.now()
-            answer.overridden_by = session['teacher_id']
+            submission.override_score = new_score
+            submission.override_reason = reason
+            submission.overridden_at = func.now()
+            submission.overridden_by = session['teacher_id']
 
             db.session.commit()
             flash('Score override successful!', 'success')
-            return redirect(url_for('view_test_results', test_id=answer.test_id))
+            return redirect(url_for('view_assignment_results', assignment_id=submission.assignment_id))
         except Exception as e:
             db.session.rollback()
             flash(f'Override failed: {str(e)}', 'error')
 
-    return render_template('override_form.html', answer=answer, question=question, test=test, student=student)
+    return render_template('override_form.html', submission=submission, assignment=assignment, student=student)
 
 
-@app.route('/teacher/report/<int:test_id>')
-def teacher_report(test_id):
+@app.route('/teacher/report/<int:assignment_id>')
+def teacher_report(assignment_id):
     if not session.get('teacher_logged_in'):
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
-    test = Test.query.filter_by(test_id=test_id, teacher_id=teacher_id).first_or_404()
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=teacher_id).first_or_404()
     teacher = Teacher.query.get(teacher_id)
 
-    answers = db.session.query(
-        StudentAnswer,
-        Student,
-        Question
-    ).join(Student, StudentAnswer.student_id == Student.student_id
-           ).join(Question, StudentAnswer.question_id == Question.question_id
-                  ).filter(StudentAnswer.test_id == test_id).all()
-
-    student_data = defaultdict(lambda: {'student': None, 'answers': []})
-    for answer, student, question in answers:
-        if not student_data[student.student_id]['student']:
-            student_data[student.student_id]['student'] = student
-        student_data[student.student_id]['answers'].append({
-            'question': question,
-            'answer': answer
-        })
+    submissions = db.session.query(
+        Submission,
+        Student
+    ).join(Student, Submission.student_id == Student.id
+           ).filter(Submission.assignment_id == assignment_id).all()
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -794,33 +799,24 @@ def teacher_report(test_id):
 
     story = []
 
-    story.append(Paragraph(f"Test Evaluation Report", title_style))
-    story.append(Paragraph(f"Test: {test.test_name}", header_style))
+    story.append(Paragraph(f"Assignment Evaluation Report", title_style))
+    story.append(Paragraph(f"Assignment: {assignment.title}", header_style))
     story.append(Paragraph(f"Teacher: {teacher.full_name}", body_style))
     story.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", body_style))
     story.append(Spacer(1, 0.2 * inch))
 
-    table_data = [['Student', 'Q#', 'Original', 'Override', 'Final', 'Method', 'Override Reason', 'Date']]
+    table_data = [['Student', 'Score', 'Method', 'Override', 'Final', 'Date']]
 
-    for student_id, data in student_data.items():
-        student = data['student']
-        for idx, item in enumerate(data['answers']):
-            answer = item['answer']
-            question = item['question']
-
-            display_score = get_display_score(answer)
-
-            table_data.append([
-                student.full_name if idx == 0 else "",
-                f"Q{idx + 1}",
-                f"{answer.score:.1f}" if answer.score is not None else "N/A",
-                f"{answer.override_score:.1f}" if answer.override_score is not None else "-",
-                f"{display_score:.1f}",
-                "Gemini" if answer.evaluation_method == 'gemini' else "Algorithm",
-                answer.override_reason[:20] + "..." if answer.override_reason and len(
-                    answer.override_reason) > 20 else (answer.override_reason or "-"),
-                answer.evaluated_at.strftime('%Y-%m-%d') if answer.evaluated_at else "-"
-            ])
+    for submission, student in submissions:
+        display_score = submission.display_score
+        table_data.append([
+            student.full_name,
+            f"{submission.score:.1f}" if submission.score is not None else "N/A",
+            "Gemini" if submission.evaluation_method == 'gemini' else "Algorithm",
+            f"{submission.override_score:.1f}" if submission.override_score is not None else "-",
+            f"{display_score:.1f}",
+            submission.evaluated_at.strftime('%Y-%m-%d') if submission.evaluated_at else "-"
+        ])
 
     table = Table(table_data)
     table.setStyle(TableStyle([
@@ -838,19 +834,19 @@ def teacher_report(test_id):
     story.append(table)
     story.append(Spacer(1, 0.2 * inch))
 
-    total_answers = len(answers)
-    override_count = sum(1 for a in answers if a[0].override_score is not None)
-    avg_score = sum(get_display_score(a[0]) for a in answers) / total_answers if total_answers else 0
+    total_submissions = len(submissions)
+    override_count = sum(1 for s in submissions if s[0].override_score is not None)
+    avg_score = sum(s[0].display_score for s in submissions) / total_submissions if total_submissions else 0
 
     story.append(Paragraph(f"<b>Summary Statistics:</b>", header_style))
-    story.append(Paragraph(f"Total Submissions: {total_answers}", body_style))
+    story.append(Paragraph(f"Total Submissions: {total_submissions}", body_style))
     story.append(Paragraph(f"Overridden Scores: {override_count}", body_style))
     story.append(Paragraph(f"Average Score: {avg_score:.2f}", body_style))
 
     doc.build(story)
     buffer.seek(0)
 
-    return send_file(buffer, as_attachment=True, download_name=f"test_{test_id}_report.pdf")
+    return send_file(buffer, as_attachment=True, download_name=f"assignment_{assignment_id}_report.pdf")
 
 
 @app.route('/teacher/logout')
@@ -897,7 +893,7 @@ def student_register():
                     db.session.add(new_student)
                     db.session.commit()
                     session['student_logged_in'] = True
-                    session['student_id'] = new_student.student_id
+                    session['student_id'] = new_student.id
                     return redirect(url_for('student_dashboard'))
                 except Exception as e:
                     db.session.rollback()
@@ -915,7 +911,7 @@ def student_login():
         student = Student.query.filter_by(username=username, password=password).first()
         if student:
             session['student_logged_in'] = True
-            session['student_id'] = student.student_id
+            session['student_id'] = student.id
             return redirect(url_for('student_dashboard'))
         return render_template('student_login.html', error='Invalid credentials')
     return render_template('student_login.html')
@@ -929,139 +925,96 @@ def student_dashboard():
     student_id = session['student_id']
     student = Student.query.get(student_id)
 
-    assigned_by_department = Test.query.filter_by(department=student.department).all()
-
-    enrolled_tests = Test.query.join(
-        Enrollment, Enrollment.test_id == Test.test_id
-    ).filter(
+    # Get classrooms student is enrolled in
+    enrolled_classrooms = Classroom.query.join(Enrollment).filter(
         Enrollment.student_id == student_id
     ).all()
 
-    assigned_tests = list(set(assigned_by_department + enrolled_tests))
+    # Get assignments from enrolled classrooms
+    assignments = Assignment.query.filter(
+        Assignment.classroom_id.in_([c.id for c in enrolled_classrooms])
+    ).all()
 
-    for test in assigned_tests:
-        test.taken = check_test_taken(student_id, test.test_id)
+    for assignment in assignments:
+        assignment.taken = check_assignment_taken(student_id, assignment.id)
 
-    recent_results = StudentAnswer.query.filter_by(
+    recent_results = Submission.query.filter_by(
         student_id=student_id
-    ).order_by(StudentAnswer.evaluated_at.desc()).limit(5).all()
+    ).order_by(Submission.evaluated_at.desc()).limit(5).all()
 
     for result in recent_results:
-        result.display_score = get_display_score(result)
+        result.display_score = result.display_score
 
     return render_template('student_dashboard.html', student=student,
-                           assigned_tests=assigned_tests, recent_results=recent_results)
+                           assignments=assignments, recent_results=recent_results)
 
 
-@app.route('/student/tests', methods=['GET'])
-def student_tests():
+@app.route('/student/assignments', methods=['GET'])
+def student_assignments():
     if not session.get('student_logged_in'):
         return redirect(url_for('student_login'))
 
     student_id = session['student_id']
     student = Student.query.get(student_id)
 
-    tests_by_department = Test.query.filter_by(department=student.department).all()
-
-    enrolled_tests = Test.query.join(
-        Enrollment, Enrollment.test_id == Test.test_id
-    ).filter(
+    enrolled_classrooms = Classroom.query.join(Enrollment).filter(
         Enrollment.student_id == student_id
     ).all()
 
-    assigned_tests = list(set(tests_by_department + enrolled_tests))
+    assignments = Assignment.query.filter(
+        Assignment.classroom_id.in_([c.id for c in enrolled_classrooms])
+    ).all()
 
-    for test in assigned_tests:
-        test.taken = check_test_taken(student_id, test.test_id)
+    for assignment in assignments:
+        assignment.taken = check_assignment_taken(student_id, assignment.id)
 
-    return render_template('student_tests.html', tests=assigned_tests)
-
-
-@app.route('/student/join', methods=['POST'])
-def join_test():
-    if not session.get('student_logged_in'):
-        return redirect(url_for('student_login'))
-
-    student_id = session['student_id']
-    invite_code = request.form['invite_code']
-
-    test = Test.query.filter_by(invite_code=invite_code).first()
-
-    if not test:
-        flash('Invalid invite code', 'error')
-        return redirect(url_for('student_dashboard'))
-
-    existing = Enrollment.query.filter_by(
-        student_id=student_id,
-        test_id=test.test_id
-    ).first()
-
-    if existing:
-        flash('You are already enrolled in this test', 'info')
-        return redirect(url_for('student_dashboard'))
-
-    enrollment = Enrollment(
-        student_id=student_id,
-        test_id=test.test_id
-    )
-
-    try:
-        db.session.add(enrollment)
-        db.session.commit()
-        flash('Successfully enrolled in test!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Enrollment failed: {str(e)}', 'error')
-
-    return redirect(url_for('student_dashboard'))
+    return render_template('student_assignments.html', assignments=assignments)
 
 
-@app.route('/student/test/<int:test_id>/take', methods=['GET', 'POST'])
-def take_test(test_id):
+@app.route('/student/assignment/<int:assignment_id>/submit', methods=['GET', 'POST'])
+def submit_assignment(assignment_id):
     if not session.get('student_logged_in'):
         return redirect(url_for('student_login'))
 
     student_id = session['student_id']
     student = Student.query.get(student_id)
-    test = Test.query.get(test_id)
+    assignment = Assignment.query.get(assignment_id)
 
+    # Check if student is enrolled in the classroom
     is_enrolled = Enrollment.query.filter_by(
         student_id=student_id,
-        test_id=test_id
+        classroom_id=assignment.classroom_id
     ).first() is not None
 
-    if test.department != student.department and not is_enrolled:
-        flash('You are not assigned to this test', 'error')
-        return redirect(url_for('student_tests'))
+    if not is_enrolled:
+        flash('You are not enrolled in this classroom', 'error')
+        return redirect(url_for('student_assignments'))
 
-    if check_test_taken(student_id, test_id):
-        flash('You have already taken this test', 'error')
-        return redirect(url_for('student_tests'))
-
-    questions = Question.query.filter_by(test_id=test_id).all()
+    if check_assignment_taken(student_id, assignment_id):
+        flash('You have already submitted this assignment', 'error')
+        return redirect(url_for('student_assignments'))
 
     if request.method == 'POST':
-        for question in questions:
-            answer_text = request.form.get(f'answer_{question.question_id}')
-            if answer_text:
-                new_answer = StudentAnswer(
-                    student_id=student_id,
-                    test_id=test_id,
-                    question_id=question.question_id,
-                    answer_text=answer_text
-                )
-                db.session.add(new_answer)
+        answer_text = request.form.get('answer_text')
+        if answer_text:
+            new_submission = Submission(
+                student_id=student_id,
+                assignment_id=assignment_id,
+                answer_text=answer_text,
+                submitted_at=func.current_timestamp()
+            )
+            db.session.add(new_submission)
 
         try:
             db.session.commit()
-            flash('Test submitted successfully!', 'success')
-            return redirect(url_for('student_tests'))
+            flash('Assignment submitted successfully!', 'success')
+            return redirect(url_for('student_assignments'))
         except Exception as e:
             db.session.rollback()
-            return render_template('take_test.html', test=test, questions=questions,
+            return render_template('submit_assignment.html', assignment=assignment,
                                    error=f'Submission failed: {str(e)}')
 
-    return render_template('take_test.html', test=test, questions=questions)
+    return render_template('submit_assignment.html', assignment=assignment)
 
 
 @app.route('/student/report')
@@ -1072,13 +1025,11 @@ def student_report():
     student_id = session['student_id']
     student = Student.query.get(student_id)
 
-    answers = db.session.query(
-        StudentAnswer,
-        Test,
-        Question
-    ).join(Test, StudentAnswer.test_id == Test.test_id
-           ).join(Question, StudentAnswer.question_id == Question.question_id
-                  ).filter(StudentAnswer.student_id == student_id).all()
+    submissions = db.session.query(
+        Submission,
+        Assignment
+    ).join(Assignment, Submission.assignment_id == Assignment.id
+           ).filter(Submission.student_id == student_id).all()
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -1117,46 +1068,46 @@ def student_report():
     total_score = 0
     max_possible = 0
 
-    for answer, test, question in answers:
-        display_score = get_display_score(answer)
+    for submission, assignment in submissions:
+        display_score = submission.display_score
 
-        story.append(Paragraph(f"<b>Test:</b> {test.test_name}", header_style))
-        story.append(Paragraph(f"<b>Question:</b> {question.question_text}", body_style))
-        story.append(Paragraph(f"<b>Your Answer:</b> {answer.answer_text}", body_style))
+        story.append(Paragraph(f"<b>Assignment:</b> {assignment.title}", header_style))
+        story.append(Paragraph(f"<b>Instructions:</b> {assignment.instructions}", body_style))
+        story.append(Paragraph(f"<b>Your Answer:</b> {submission.answer_text}", body_style))
 
-        story.append(Paragraph(f"<b>Score:</b> {display_score:.1f}/{question.max_score}", body_style))
+        story.append(Paragraph(f"<b>Score:</b> {display_score:.1f}/{assignment.max_score}", body_style))
         story.append(Paragraph(
-            f"<b>Evaluation Method:</b> {'Gemini API' if answer.evaluation_method == 'gemini' else 'Expected Answer Algorithm'}",
+            f"<b>Evaluation Method:</b> {'Gemini API' if submission.evaluation_method == 'gemini' else 'Algorithm'}",
             body_style))
 
-        if answer.evaluation_method == 'gemini' and answer.gemini_comment:
-            remarks = answer.gemini_comment
+        if submission.evaluation_method == 'gemini' and submission.gemini_comment:
+            remarks = submission.gemini_comment
         else:
-            expected = ExpectedAnswer.query.filter_by(question_id=question.question_id).first()
-            remarks = generate_expected_feedback(answer.answer_text,
-                                                 expected.answer_text) if expected else "No remarks available"
+            remarks = generate_expected_feedback(submission.answer_text, assignment.expected_answer)
 
         story.append(Paragraph(f"<b>Remarks:</b> {remarks}", body_style))
-        story.append(Paragraph(f"<b>Evaluated At:</b> {answer.evaluated_at.strftime('%Y-%m-%d %H:%M')}", body_style))
+        story.append(
+            Paragraph(f"<b>Evaluated At:</b> {submission.evaluated_at.strftime('%Y-%m-%d %H:%M')}", body_style))
 
-        if answer.override_score is not None:
-            teacher = Teacher.query.get(answer.overridden_by)
+        if submission.override_score is not None:
+            teacher = Teacher.query.get(submission.overridden_by)
             teacher_name = teacher.full_name if teacher else "Unknown"
             story.append(Paragraph(
-                f"<b>Score Override:</b> {answer.override_score} (by {teacher_name} on {answer.overridden_at.strftime('%Y-%m-%d')})",
+                f"<b>Score Override:</b> {submission.override_score} (by {teacher_name} on {submission.overridden_at.strftime('%Y-%m-%d')})",
                 body_style))
-            story.append(Paragraph(f"<b>Reason:</b> {answer.override_reason}", body_style))
+            story.append(Paragraph(f"<b>Reason:</b> {submission.override_reason}", body_style))
 
         story.append(Spacer(1, 0.1 * inch))
 
         total_score += display_score
-        max_possible += question.max_score
+        max_possible += assignment.max_score
 
     story.append(Spacer(1, 0.2 * inch))
     story.append(Paragraph(f"<b>Overall Performance:</b>", header_style))
     story.append(Paragraph(f"Total Score: {total_score:.1f}/{max_possible}", body_style))
     story.append(
-        Paragraph(f"Average Score: {total_score / len(answers) if answers else 0:.1f} per question", body_style))
+        Paragraph(f"Average Score: {total_score / len(submissions) if submissions else 0:.1f} per assignment",
+                  body_style))
 
     doc.build(story)
     buffer.seek(0)
@@ -1172,28 +1123,19 @@ def student_results():
     student_id = session['student_id']
 
     results = db.session.query(
-        StudentAnswer,
-        Test,
-        Question
-    ).join(Test, StudentAnswer.test_id == Test.test_id
-           ).join(Question, StudentAnswer.question_id == Question.question_id
-                  ).filter(StudentAnswer.student_id == student_id).all()
+        Submission,
+        Assignment
+    ).join(Assignment, Submission.assignment_id == Assignment.id
+           ).filter(Submission.student_id == student_id).all()
 
-    test_results = defaultdict(lambda: {'test': None, 'answers': [], 'total': 0})
+    assignment_results = defaultdict(lambda: {'assignment': None, 'submission': None})
 
-    for answer, test, question in results:
-        if not test_results[test.test_id]['test']:
-            test_results[test.test_id]['test'] = test
+    for submission, assignment in results:
+        if not assignment_results[assignment.id]['assignment']:
+            assignment_results[assignment.id]['assignment'] = assignment
+        assignment_results[assignment.id]['submission'] = submission
 
-        display_score = get_display_score(answer)
-        test_results[test.test_id]['answers'].append({
-            'question': question,
-            'answer': answer,
-            'display_score': display_score
-        })
-        test_results[test.test_id]['total'] += display_score if display_score else 0
-
-    return render_template('student_results.html', test_results=test_results)
+    return render_template('student_results.html', assignment_results=assignment_results)
 
 
 @app.route('/student/logout')
@@ -1218,7 +1160,7 @@ def login():
             teacher = Teacher.query.filter_by(username=username, password=hashed_password).first()
             if teacher:
                 session['teacher_logged_in'] = True
-                session['teacher_id'] = teacher.teacher_id
+                session['teacher_id'] = teacher.id
                 return redirect(url_for('teacher_dashboard'))
             error = 'Invalid credentials for teacher'
 
@@ -1226,7 +1168,7 @@ def login():
             student = Student.query.filter_by(username=username, password=hashed_password).first()
             if student:
                 session['student_logged_in'] = True
-                session['student_id'] = student.student_id
+                session['student_id'] = student.id
                 return redirect(url_for('student_dashboard'))
             error = 'Invalid credentials for student'
 
@@ -1237,11 +1179,12 @@ def login():
                 admin = Admin.query.filter_by(username=username, password=hashed_password).first()
                 if admin:
                     session['admin_logged_in'] = True
-                    session['admin_id'] = admin.admin_id
+                    session['admin_id'] = admin.id
                     return redirect(url_for('admin_dashboard'))
                 error = 'Invalid credentials for admin'
 
     return render_template('login.html', error=error)
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -1263,6 +1206,27 @@ if __name__ == '__main__':
                 password=hash_password('admin123')
             )
             db.session.add(admin)
+            db.session.commit()
+
+        # Create a test teacher if none exists
+        if not Teacher.query.first():
+            teacher = Teacher(
+                username='teacher',
+                password=hash_password('teacher123'),
+                full_name='Test Teacher'
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+        # Create a test classroom if none exists
+        if not Classroom.query.first() and Teacher.query.first():
+            classroom = Classroom(
+                name='Computer Science 101',
+                teacher_id=1,
+                department='Computer Science',
+                year=1
+            )
+            db.session.add(classroom)
             db.session.commit()
 
     app.run(debug=True)
