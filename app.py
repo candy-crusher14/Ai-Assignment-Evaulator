@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 import sys
 import string
@@ -15,6 +15,15 @@ import google.generativeai as genai
 import os
 import hashlib
 import re
+import random
+import io
+from datetime import datetime
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
 
 warnings.filterwarnings("ignore")
 nltk.download("stopwords")
@@ -28,7 +37,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
 # Set the template folder
 app.template_folder = 'templates'
 
-# SQLAlchemy Configuration
+# SQLAlchemy Configuration - Use SQLite in-memory for testing
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///exam_system.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -41,7 +50,11 @@ db = SQLAlchemy(app)
 # Configure Gemini API
 genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 # gemini_model = (genai.
-                # GenerativeModel('gemini-pro'))
+#                 GenerativeModel('gemini-pro'))
+
+# Define allowed departments and years for students
+DEPARTMENTS = ('Computer Science', 'Information Technology')
+YEARS = (1, 2, 3, 4)
 
 
 # Define database models
@@ -51,7 +64,6 @@ class Admin(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
 
-
 class Student(db.Model):
     __tablename__ = 'students'
     student_id = db.Column(db.Integer, primary_key=True)
@@ -59,8 +71,9 @@ class Student(db.Model):
     password = db.Column(db.String(120), nullable=False)
     full_name = db.Column(db.String(120))
     email = db.Column(db.String(120))
+    department = db.Column(db.String(80), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
-
 
 class Teacher(db.Model):
     __tablename__ = 'teachers'
@@ -69,7 +82,6 @@ class Teacher(db.Model):
     password = db.Column(db.String(120), nullable=False)
     full_name = db.Column(db.String(120))
     email = db.Column(db.String(120))
-    department = db.Column(db.String(80))
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
 
 
@@ -81,6 +93,11 @@ class Test(db.Model):
     created_at = db.Column(db.DateTime, default=func.current_timestamp())
     duration = db.Column(db.Integer)  # Duration in minutes
     instructions = db.Column(db.Text)
+    invite_code = db.Column(db.String(8), unique=True, nullable=False,
+                            default=lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=6)))
+    # Add department and year fields
+    department = db.Column(db.String(80), nullable=False, default='Computer Science')
+    year = db.Column(db.Integer, nullable=False, default=1)
 
 
 class Question(db.Model):
@@ -108,13 +125,19 @@ class StudentAnswer(db.Model):
     score = db.Column(db.Float)
     evaluated_at = db.Column(db.DateTime)
     evaluation_method = db.Column(db.String(50))  # 'gemini' or 'algorithm'
+    override_score = db.Column(db.Float, nullable=True)
+    override_reason = db.Column(db.Text, nullable=True)
+    overridden_at = db.Column(db.DateTime, nullable=True)
+    overridden_by = db.Column(db.Integer, db.ForeignKey('teachers.teacher_id'), nullable=True)
+    gemini_comment = db.Column(db.Text, nullable=True)
 
 
-class TeacherStudentRelationship(db.Model):
-    __tablename__ = 'teacher_student_relationships'
+class Enrollment(db.Model):
+    __tablename__ = 'enrollments'
     id = db.Column(db.Integer, primary_key=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.teacher_id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'), nullable=False)
+    test_id = db.Column(db.Integer, db.ForeignKey('tests.test_id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('student_id', 'test_id', name='_stud_test_uc'),)
 
 
 # Set English stopwords
@@ -211,6 +234,20 @@ def relevance_score(expected_answer, student_answer):
     return len(expected_tokens & student_tokens) / len(expected_tokens)
 
 
+def get_display_score(answer):
+    return answer.override_score if answer.override_score is not None else answer.score
+
+
+def generate_expected_feedback(student_answer, expected_answer):
+    similarity = semantic_similarity_score(expected_answer, student_answer)
+    if similarity >= 0.8:
+        return "Excellent match. All key points present."
+    elif similarity >= 0.5:
+        return "Fair answer. Some key points are missing."
+    else:
+        return "Low match. Several important concepts not found."
+
+
 def evaluate_with_algorithm(expected, response, max_score=10):
     if expected.strip().lower() == response.strip().lower():
         return max_score, "algorithm"
@@ -261,7 +298,6 @@ def evaluate_with_gemini(expected, response, question_text, max_score=10):
     except Exception as e:
         print(f"Gemini evaluation error: {str(e)}")
 
-    # Fallback to algorithm if Gemini fails
     score, _ = evaluate_with_algorithm(expected, response, max_score)
     return score, "algorithm", "Evaluation completed using backup method"
 
@@ -277,7 +313,6 @@ def evaluate_answer(student_answer_record):
 
     max_score = question.max_score if question else 10
 
-    # Check which evaluation method to use
     evaluation_method = request.form.get('evaluation_method', 'algorithm')
 
     if evaluation_method == 'gemini':
@@ -308,7 +343,6 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# Homepage
 @app.route('/')
 def index():
     return render_template('homepage.html')
@@ -325,7 +359,6 @@ def dashboard():
     return redirect(url_for('index'))
 
 
-# Admin routes
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
@@ -333,7 +366,6 @@ def admin_login():
         password = hash_password(request.form['password'])
         admin_code = request.form.get('admin_code', '')
 
-        # Check admin code (replace 'ADMIN_SECRET' with your actual secret)
         if admin_code != os.environ.get('ADMIN_SECRET', 'admin123'):
             return render_template('admin_login.html', error='Invalid admin code')
 
@@ -394,7 +426,6 @@ def admin_logout():
     return redirect(url_for('index'))
 
 
-# Teacher routes
 @app.route('/teacher/register', methods=['GET', 'POST'])
 def teacher_register():
     error = None
@@ -404,32 +435,25 @@ def teacher_register():
         confirm_password = request.form.get('confirm_password', '')
         full_name = request.form.get('full_name', '')
         email = request.form.get('email', '')
-        department = request.form.get('department', '')
 
-        # Check password match
         if password != confirm_password:
             error = 'Passwords do not match'
         else:
-            # Check if username exists
             if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
                 error = 'Username already exists'
             else:
-                # Hash password
                 hashed_password = hash_password(password)
 
-                # Create new teacher
                 new_teacher = Teacher(
                     username=username,
                     password=hashed_password,
                     full_name=full_name,
-                    email=email,
-                    department=department
+                    email=email
                 )
 
                 try:
                     db.session.add(new_teacher)
                     db.session.commit()
-                    # Automatically log in after registration
                     session['teacher_logged_in'] = True
                     session['teacher_id'] = new_teacher.teacher_id
                     return redirect(url_for('teacher_dashboard'))
@@ -465,7 +489,7 @@ def teacher_dashboard():
 
     stats = {
         'tests': Test.query.filter_by(teacher_id=teacher_id).count(),
-        'students': TeacherStudentRelationship.query.filter_by(teacher_id=teacher_id).count(),
+        # Remove department reference since Teacher doesn't have department
         'recent_tests': Test.query.filter_by(teacher_id=teacher_id)
         .order_by(Test.created_at.desc())
         .limit(5).all()
@@ -490,17 +514,23 @@ def create_test():
         return redirect(url_for('teacher_login'))
 
     teacher_id = session['teacher_id']
+    teacher = Teacher.query.get(teacher_id)
 
     if request.method == 'POST':
         test_name = request.form['test_name']
         instructions = request.form.get('instructions', '')
         duration = int(request.form.get('duration', 60))
+        # Add department and year to test creation
+        department = request.form.get('department', 'Computer Science')
+        year = int(request.form.get('year', 1))
 
         new_test = Test(
             test_name=test_name,
             teacher_id=teacher_id,
             instructions=instructions,
-            duration=duration
+            duration=duration,
+            department=department,
+            year=year
         )
 
         try:
@@ -512,7 +542,9 @@ def create_test():
             db.session.rollback()
             return render_template('create_test.html', error=f'Failed to create test: {str(e)}')
 
-    return render_template('create_test.html')
+    # Pass departments and years to template
+    return render_template('create_test.html', departments=DEPARTMENTS, years=YEARS)
+
 
 
 @app.route('/teacher/test/<int:test_id>/edit', methods=['GET', 'POST'])
@@ -535,19 +567,16 @@ def edit_test(test_id):
         question_answers[question.question_id] = answers
 
     if request.method == 'POST':
-        # Handle question updates
         for question in questions:
             question_text = request.form.get(f'question_{question.question_id}')
             if question_text:
                 question.question_text = question_text
 
-            # Update expected answers
             for answer in answers:
                 answer_text = request.form.get(f'answer_{answer.answer_id}')
                 if answer_text:
                     answer.answer_text = answer_text
 
-        # Add new questions
         new_questions = request.form.getlist('new_question[]')
         new_question_answers = request.form.getlist('new_expected_answers[]')
 
@@ -559,7 +588,7 @@ def edit_test(test_id):
                     max_score=int(request.form.getlist('new_max_score[]')[i])
                 )
                 db.session.add(new_question)
-                db.session.flush()  # Get the new question ID
+                db.session.flush()
 
                 answers = new_question_answers[i].split('|')
                 for answer_text in answers:
@@ -594,16 +623,17 @@ def evaluate_test(test_id):
         flash('Test not found or you do not have permission', 'error')
         return redirect(url_for('teacher_tests'))
 
-    # Get all student answers for this test
     student_answers = StudentAnswer.query.filter_by(test_id=test_id).all()
 
-    # Evaluate each answer
     for answer in student_answers:
-        if not answer.score:  # Only evaluate if not already scored
-            score, method, _ = evaluate_answer(answer)
+        if not answer.score:
+            score, method, comment = evaluate_answer(answer)
             answer.score = score
             answer.evaluation_method = method
             answer.evaluated_at = func.current_timestamp()
+
+            if method == 'gemini' and comment:
+                answer.gemini_comment = comment
 
     try:
         db.session.commit()
@@ -627,7 +657,6 @@ def view_test_results(test_id):
         flash('Test not found or you do not have permission', 'error')
         return redirect(url_for('teacher_tests'))
 
-    # Get all student answers with student info
     results = db.session.query(
         StudentAnswer,
         Student,
@@ -636,19 +665,169 @@ def view_test_results(test_id):
            ).join(Question, StudentAnswer.question_id == Question.question_id
                   ).filter(StudentAnswer.test_id == test_id).all()
 
-    # Organize by student
     student_results = defaultdict(lambda: {'student': None, 'answers': [], 'total': 0})
 
     for answer, student, question in results:
         if not student_results[student.student_id]['student']:
             student_results[student.student_id]['student'] = student
+
+        display_score = get_display_score(answer)
         student_results[student.student_id]['answers'].append({
+            'question': question,
+            'answer': answer,
+            'display_score': display_score
+        })
+        student_results[student.student_id]['total'] += display_score if display_score else 0
+
+    return render_template('test_results.html', test=test, student_results=student_results)
+
+
+@app.route('/teacher/override/<int:answer_id>', methods=['GET', 'POST'])
+def override_score(answer_id):
+    if not session.get('teacher_logged_in'):
+        return redirect(url_for('teacher_login'))
+
+    answer = StudentAnswer.query.get_or_404(answer_id)
+    question = Question.query.get(answer.question_id)
+    test = Test.query.get(answer.test_id)
+    student = Student.query.get(answer.student_id)
+
+    if request.method == 'POST':
+        try:
+            new_score = float(request.form['new_score'])
+            reason = request.form['reason']
+
+            max_score = question.max_score if question else 10
+            if new_score < 0 or new_score > max_score:
+                flash(f'Score must be between 0 and {max_score}', 'error')
+                return redirect(url_for('override_score', answer_id=answer_id))
+
+            answer.override_score = new_score
+            answer.override_reason = reason
+            answer.overridden_at = func.now()
+            answer.overridden_by = session['teacher_id']
+
+            db.session.commit()
+            flash('Score override successful!', 'success')
+            return redirect(url_for('view_test_results', test_id=answer.test_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Override failed: {str(e)}', 'error')
+
+    return render_template('override_form.html', answer=answer, question=question, test=test, student=student)
+
+
+@app.route('/teacher/report/<int:test_id>')
+def teacher_report(test_id):
+    if not session.get('teacher_logged_in'):
+        return redirect(url_for('teacher_login'))
+
+    teacher_id = session['teacher_id']
+    test = Test.query.filter_by(test_id=test_id, teacher_id=teacher_id).first_or_404()
+    teacher = Teacher.query.get(teacher_id)
+
+    answers = db.session.query(
+        StudentAnswer,
+        Student,
+        Question
+    ).join(Student, StudentAnswer.student_id == Student.student_id
+           ).join(Question, StudentAnswer.question_id == Question.question_id
+                  ).filter(StudentAnswer.test_id == test_id).all()
+
+    student_data = defaultdict(lambda: {'student': None, 'answers': []})
+    for answer, student, question in answers:
+        if not student_data[student.student_id]['student']:
+            student_data[student.student_id]['student'] = student
+        student_data[student.student_id]['answers'].append({
             'question': question,
             'answer': answer
         })
-        student_results[student.student_id]['total'] += answer.score if answer.score else 0
 
-    return render_template('test_results.html', test=test, student_results=student_results)
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=16,
+        alignment=1,
+        spaceAfter=12
+    )
+
+    header_style = ParagraphStyle(
+        'Header',
+        parent=styles['Heading2'],
+        fontSize=12,
+        spaceAfter=6
+    )
+
+    body_style = ParagraphStyle(
+        'Body',
+        parent=styles['BodyText'],
+        fontSize=10,
+        spaceAfter=6
+    )
+
+    story = []
+
+    story.append(Paragraph(f"Test Evaluation Report", title_style))
+    story.append(Paragraph(f"Test: {test.test_name}", header_style))
+    story.append(Paragraph(f"Teacher: {teacher.full_name}", body_style))
+    story.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    table_data = [['Student', 'Q#', 'Original', 'Override', 'Final', 'Method', 'Override Reason', 'Date']]
+
+    for student_id, data in student_data.items():
+        student = data['student']
+        for idx, item in enumerate(data['answers']):
+            answer = item['answer']
+            question = item['question']
+
+            display_score = get_display_score(answer)
+
+            table_data.append([
+                student.full_name if idx == 0 else "",
+                f"Q{idx + 1}",
+                f"{answer.score:.1f}" if answer.score is not None else "N/A",
+                f"{answer.override_score:.1f}" if answer.override_score is not None else "-",
+                f"{display_score:.1f}",
+                "Gemini" if answer.evaluation_method == 'gemini' else "Algorithm",
+                answer.override_reason[:20] + "..." if answer.override_reason and len(
+                    answer.override_reason) > 20 else (answer.override_reason or "-"),
+                answer.evaluated_at.strftime('%Y-%m-%d') if answer.evaluated_at else "-"
+            ])
+
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+    ]))
+
+    story.append(table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    total_answers = len(answers)
+    override_count = sum(1 for a in answers if a[0].override_score is not None)
+    avg_score = sum(get_display_score(a[0]) for a in answers) / total_answers if total_answers else 0
+
+    story.append(Paragraph(f"<b>Summary Statistics:</b>", header_style))
+    story.append(Paragraph(f"Total Submissions: {total_answers}", body_style))
+    story.append(Paragraph(f"Overridden Scores: {override_count}", body_style))
+    story.append(Paragraph(f"Average Score: {avg_score:.2f}", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name=f"test_{test_id}_report.pdf")
 
 
 @app.route('/teacher/logout')
@@ -658,7 +837,6 @@ def teacher_logout():
     return redirect(url_for('index'))
 
 
-# Student routes
 @app.route('/student/register', methods=['GET', 'POST'])
 def student_register():
     error = None
@@ -668,30 +846,33 @@ def student_register():
         confirm_password = request.form.get('confirm_password', '')
         full_name = request.form.get('full_name', '')
         email = request.form.get('email', '')
+        department = request.form['department']
+        year = int(request.form['year'])
 
-        # Check password match
-        if password != confirm_password:
+        if department not in DEPARTMENTS:
+            error = 'Invalid department'
+        elif year not in YEARS:
+            error = 'Invalid year'
+        elif password != confirm_password:
             error = 'Passwords do not match'
         else:
-            # Check if username exists
             if Student.query.filter_by(username=username).first() or Teacher.query.filter_by(username=username).first():
                 error = 'Username already exists'
             else:
-                # Hash password
                 hashed_password = hash_password(password)
 
-                # Create new student
                 new_student = Student(
                     username=username,
                     password=hashed_password,
                     full_name=full_name,
-                    email=email
+                    email=email,
+                    department=department,
+                    year=year
                 )
 
                 try:
                     db.session.add(new_student)
                     db.session.commit()
-                    # Automatically log in after registration
                     session['student_logged_in'] = True
                     session['student_id'] = new_student.student_id
                     return redirect(url_for('student_dashboard'))
@@ -725,18 +906,25 @@ def student_dashboard():
     student_id = session['student_id']
     student = Student.query.get(student_id)
 
-    # Get assigned tests
-    assigned_tests = db.session.query(Test).join(
-        TeacherStudentRelationship,
-        TeacherStudentRelationship.teacher_id == Test.teacher_id
+    assigned_by_department = Test.query.filter_by(department=student.department).all()
+
+    enrolled_tests = Test.query.join(
+        Enrollment, Enrollment.test_id == Test.test_id
     ).filter(
-        TeacherStudentRelationship.student_id == student_id
+        Enrollment.student_id == student_id
     ).all()
 
-    # Get recent test results
+    assigned_tests = list(set(assigned_by_department + enrolled_tests))
+
+    for test in assigned_tests:
+        test.taken = check_test_taken(student_id, test.test_id)
+
     recent_results = StudentAnswer.query.filter_by(
         student_id=student_id
     ).order_by(StudentAnswer.evaluated_at.desc()).limit(5).all()
+
+    for result in recent_results:
+        result.display_score = get_display_score(result)
 
     return render_template('student_dashboard.html', student=student,
                            assigned_tests=assigned_tests, recent_results=recent_results)
@@ -748,20 +936,61 @@ def student_tests():
         return redirect(url_for('student_login'))
 
     student_id = session['student_id']
+    student = Student.query.get(student_id)
 
-    # Get tests assigned to this student
-    assigned_tests = db.session.query(Test).join(
-        TeacherStudentRelationship,
-        TeacherStudentRelationship.teacher_id == Test.teacher_id
+    tests_by_department = Test.query.filter_by(department=student.department).all()
+
+    enrolled_tests = Test.query.join(
+        Enrollment, Enrollment.test_id == Test.test_id
     ).filter(
-        TeacherStudentRelationship.student_id == student_id
+        Enrollment.student_id == student_id
     ).all()
 
-    # Check which tests have been taken
+    assigned_tests = list(set(tests_by_department + enrolled_tests))
+
     for test in assigned_tests:
         test.taken = check_test_taken(student_id, test.test_id)
 
     return render_template('student_tests.html', tests=assigned_tests)
+
+
+@app.route('/student/join', methods=['POST'])
+def join_test():
+    if not session.get('student_logged_in'):
+        return redirect(url_for('student_login'))
+
+    student_id = session['student_id']
+    invite_code = request.form['invite_code']
+
+    test = Test.query.filter_by(invite_code=invite_code).first()
+
+    if not test:
+        flash('Invalid invite code', 'error')
+        return redirect(url_for('student_dashboard'))
+
+    existing = Enrollment.query.filter_by(
+        student_id=student_id,
+        test_id=test.test_id
+    ).first()
+
+    if existing:
+        flash('You are already enrolled in this test', 'info')
+        return redirect(url_for('student_dashboard'))
+
+    enrollment = Enrollment(
+        student_id=student_id,
+        test_id=test.test_id
+    )
+
+    try:
+        db.session.add(enrollment)
+        db.session.commit()
+        flash('Successfully enrolled in test!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Enrollment failed: {str(e)}', 'error')
+
+    return redirect(url_for('student_dashboard'))
 
 
 @app.route('/student/test/<int:test_id>/take', methods=['GET', 'POST'])
@@ -770,23 +999,22 @@ def take_test(test_id):
         return redirect(url_for('student_login'))
 
     student_id = session['student_id']
+    student = Student.query.get(student_id)
+    test = Test.query.get(test_id)
 
-    # Check if test is assigned to student
-    relationship = TeacherStudentRelationship.query.filter_by(
+    is_enrolled = Enrollment.query.filter_by(
         student_id=student_id,
-        teacher_id=Test.query.get(test_id).teacher_id
-    ).first()
+        test_id=test_id
+    ).first() is not None
 
-    if not relationship:
+    if test.department != student.department and not is_enrolled:
         flash('You are not assigned to this test', 'error')
         return redirect(url_for('student_tests'))
 
-    # Check if already taken
     if check_test_taken(student_id, test_id):
         flash('You have already taken this test', 'error')
         return redirect(url_for('student_tests'))
 
-    test = Test.query.get(test_id)
     questions = Question.query.filter_by(test_id=test_id).all()
 
     if request.method == 'POST':
@@ -813,6 +1041,106 @@ def take_test(test_id):
     return render_template('take_test.html', test=test, questions=questions)
 
 
+@app.route('/student/report')
+def student_report():
+    if not session.get('student_logged_in'):
+        return redirect(url_for('student_login'))
+
+    student_id = session['student_id']
+    student = Student.query.get(student_id)
+
+    answers = db.session.query(
+        StudentAnswer,
+        Test,
+        Question
+    ).join(Test, StudentAnswer.test_id == Test.test_id
+           ).join(Question, StudentAnswer.question_id == Question.question_id
+                  ).filter(StudentAnswer.student_id == student_id).all()
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=16,
+        alignment=1,
+        spaceAfter=12
+    )
+
+    header_style = ParagraphStyle(
+        'Header',
+        parent=styles['Heading2'],
+        fontSize=12,
+        spaceAfter=6
+    )
+
+    body_style = ParagraphStyle(
+        'Body',
+        parent=styles['BodyText'],
+        fontSize=10,
+        spaceAfter=6
+    )
+
+    story = []
+
+    story.append(Paragraph(f"Student Evaluation Report", title_style))
+    story.append(Paragraph(f"Student: {student.full_name}", header_style))
+    story.append(Paragraph(f"Department: {student.department}, Year: {student.year}", body_style))
+    story.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    total_score = 0
+    max_possible = 0
+
+    for answer, test, question in answers:
+        display_score = get_display_score(answer)
+
+        story.append(Paragraph(f"<b>Test:</b> {test.test_name}", header_style))
+        story.append(Paragraph(f"<b>Question:</b> {question.question_text}", body_style))
+        story.append(Paragraph(f"<b>Your Answer:</b> {answer.answer_text}", body_style))
+
+        story.append(Paragraph(f"<b>Score:</b> {display_score:.1f}/{question.max_score}", body_style))
+        story.append(Paragraph(
+            f"<b>Evaluation Method:</b> {'Gemini API' if answer.evaluation_method == 'gemini' else 'Expected Answer Algorithm'}",
+            body_style))
+
+        if answer.evaluation_method == 'gemini' and answer.gemini_comment:
+            remarks = answer.gemini_comment
+        else:
+            expected = ExpectedAnswer.query.filter_by(question_id=question.question_id).first()
+            remarks = generate_expected_feedback(answer.answer_text,
+                                                 expected.answer_text) if expected else "No remarks available"
+
+        story.append(Paragraph(f"<b>Remarks:</b> {remarks}", body_style))
+        story.append(Paragraph(f"<b>Evaluated At:</b> {answer.evaluated_at.strftime('%Y-%m-%d %H:%M')}", body_style))
+
+        if answer.override_score is not None:
+            teacher = Teacher.query.get(answer.overridden_by)
+            teacher_name = teacher.full_name if teacher else "Unknown"
+            story.append(Paragraph(
+                f"<b>Score Override:</b> {answer.override_score} (by {teacher_name} on {answer.overridden_at.strftime('%Y-%m-%d')})",
+                body_style))
+            story.append(Paragraph(f"<b>Reason:</b> {answer.override_reason}", body_style))
+
+        story.append(Spacer(1, 0.1 * inch))
+
+        total_score += display_score
+        max_possible += question.max_score
+
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph(f"<b>Overall Performance:</b>", header_style))
+    story.append(Paragraph(f"Total Score: {total_score:.1f}/{max_possible}", body_style))
+    story.append(
+        Paragraph(f"Average Score: {total_score / len(answers) if answers else 0:.1f} per question", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name="student_report.pdf")
+
+
 @app.route('/student/results', methods=['GET'])
 def student_results():
     if not session.get('student_logged_in'):
@@ -820,7 +1148,6 @@ def student_results():
 
     student_id = session['student_id']
 
-    # Get all test results
     results = db.session.query(
         StudentAnswer,
         Test,
@@ -829,17 +1156,19 @@ def student_results():
            ).join(Question, StudentAnswer.question_id == Question.question_id
                   ).filter(StudentAnswer.student_id == student_id).all()
 
-    # Organize by test
     test_results = defaultdict(lambda: {'test': None, 'answers': [], 'total': 0})
 
     for answer, test, question in results:
         if not test_results[test.test_id]['test']:
             test_results[test.test_id]['test'] = test
+
+        display_score = get_display_score(answer)
         test_results[test.test_id]['answers'].append({
             'question': question,
-            'answer': answer
+            'answer': answer,
+            'display_score': display_score
         })
-        test_results[test.test_id]['total'] += answer.score if answer.score else 0
+        test_results[test.test_id]['total'] += display_score if display_score else 0
 
     return render_template('student_results.html', test_results=test_results)
 
@@ -851,18 +1180,19 @@ def student_logout():
     return redirect(url_for('index'))
 
 
-# Unified login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         username = request.form['username']
-        password = hash_password(request.form['password'])
+        password = request.form['password']
         role = request.form['role']
         admin_code = request.form.get('admin_code', '')
 
+        hashed_password = hash_password(password)
+
         if role == 'teacher':
-            teacher = Teacher.query.filter_by(username=username, password=password).first()
+            teacher = Teacher.query.filter_by(username=username, password=hashed_password).first()
             if teacher:
                 session['teacher_logged_in'] = True
                 session['teacher_id'] = teacher.teacher_id
@@ -870,7 +1200,7 @@ def login():
             error = 'Invalid credentials for teacher'
 
         elif role == 'student':
-            student = Student.query.filter_by(username=username, password=password).first()
+            student = Student.query.filter_by(username=username, password=hashed_password).first()
             if student:
                 session['student_logged_in'] = True
                 session['student_id'] = student.student_id
@@ -878,11 +1208,10 @@ def login():
             error = 'Invalid credentials for student'
 
         elif role == 'admin':
-            # Check admin code (replace 'ADMIN_SECRET' with your actual secret)
             if admin_code != os.environ.get('ADMIN_SECRET', 'admin123'):
                 error = 'Invalid admin code'
             else:
-                admin = Admin.query.filter_by(username=username, password=password).first()
+                admin = Admin.query.filter_by(username=username, password=hashed_password).first()
                 if admin:
                     session['admin_logged_in'] = True
                     session['admin_id'] = admin.admin_id
@@ -891,8 +1220,6 @@ def login():
 
     return render_template('login.html', error=error)
 
-
-# Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('error.html', message="Page not found"), 404
@@ -907,7 +1234,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
-        # Create default admin if not exists
         if not Admin.query.first():
             admin = Admin(
                 username='admin',

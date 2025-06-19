@@ -153,7 +153,7 @@
                 </div>
             {% endif %}
 
-            <form action="/teacher/register" method="POST">
+            <form method="POST" action="{{ url_for('teacher_register') }}">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" class="form-control" placeholder="Choose a username" required>
@@ -168,15 +168,11 @@
                 </div>
                 <div class="form-group">
                     <label for="full_name">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Your full name">
+                    <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Your full name" required>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="your.email@example.com">
-                </div>
-                <div class="form-group">
-                    <label for="department">Department</label>
-                    <input type="text" id="department" name="department" class="form-control" placeholder="Department">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="your.email@example.com" required>
                 </div>
                 <button type="submit" class="submit-btn">Create Account</button>
             </form>
@@ -189,12 +185,11 @@
     </div>
 
     <script>
-        // Password matching validation
         const form = document.querySelector('form');
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirm_password');
-
         form.addEventListener('submit', function(e) {
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirm_password');
+
             if (password.value !== confirmPassword.value) {
                 e.preventDefault();
                 alert('Passwords do not match!');
