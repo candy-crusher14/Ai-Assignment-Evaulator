@@ -6,6 +6,7 @@
     <title>AI Assignment Evaluator | Teacher Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -758,10 +759,10 @@
                 </ul>
                 <div class="user-menu">
                     <div class="user-info">
-                        <div class="user-name">Sarah Johnson</div>
+                        <div class="user-name">Welcome, {{ teacher.full_name }}</div>
                         <div class="user-role">Teacher</div>
                     </div>
-                    <div class="user-avatar">SJ</div>
+                    <div class="user-avatar">{{ teacher.full_name[0] }}</div>
                 </div>
             </nav>
         </div>
@@ -777,25 +778,23 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span class="menu-text">Dashboard</span>
                 </li>
-                <li class="menu-item" onclick="showTab('classroom-manager')">
-                    <i class="fas fa-chalkboard"></i>
-                    <span class="menu-text">Classroom Manager</span>
-                </li>
-                <li class="menu-item" onclick="showTab('assignment-creator')">
-                    <i class="fas fa-tasks"></i>
-                    <span class="menu-text">Assignment Creator</span>
+                <li class="menu-item" onclick="showTab('create-test')">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="menu-text">Create Test</span>
                 </li>
                 <li class="menu-item" onclick="showTab('evaluation-hub')">
                     <i class="fas fa-clipboard-check"></i>
                     <span class="menu-text">Evaluation Hub</span>
                 </li>
-                <li class="menu-item" onclick="showTab('student-view')">
-                    <i class="fas fa-user-graduate"></i>
-                    <span class="menu-text">Student View</span>
+                <li class="menu-item" onclick="showTab('reports')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-text">Reports</span>
                 </li>
                 <li class="menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Logout</span>
+                    <a href="{{ url_for('teacher_logout') }}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="menu-text">Logout</span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -806,22 +805,33 @@
             <div id="teacher-dashboard" class="tab-content active">
                 <div class="page-header">
                     <h1 class="page-title">Teacher Dashboard</h1>
-                    <button class="btn btn-primary">
+                    <button class="btn btn-primary" onclick="showTab('create-test')">
                         <i class="fas fa-plus"></i> New Assignment
                     </button>
                 </div>
 
-                <!-- Dashboard Widgets -->
+                <!-- Dashboard Statistics -->
                 <div class="dashboard-widgets">
                     <div class="widget">
                         <div class="widget-header">
-                            <div class="widget-title">Active Classrooms</div>
+                            <div class="widget-title">Total Tests</div>
                             <div class="widget-icon">
-                                <i class="fas fa-chalkboard"></i>
+                                <i class="fas fa-file-alt"></i>
                             </div>
                         </div>
-                        <div class="widget-value">4</div>
-                        <div class="widget-description">Classrooms you're teaching</div>
+                        <div class="widget-value">{{ tests|length }}</div>
+                        <div class="widget-description">Tests created</div>
+                    </div>
+
+                    <div class="widget">
+                        <div class="widget-header">
+                            <div class="widget-title">Enrolled Students</div>
+                            <div class="widget-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="widget-value">{{ total_enrollments }}</div>
+                        <div class="widget-description">Students enrolled</div>
                     </div>
 
                     <div class="widget">
@@ -831,604 +841,300 @@
                                 <i class="fas fa-clipboard-list"></i>
                             </div>
                         </div>
-                        <div class="widget-value">23</div>
+                        <div class="widget-value">{{ pending_evaluations }}</div>
                         <div class="widget-description">Submissions to evaluate</div>
                     </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="widget-title">Avg. Completion</div>
-                            <div class="widget-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                        </div>
-                        <div class="widget-value">78%</div>
-                        <div class="widget-description">Assignment completion rate</div>
-                    </div>
                 </div>
 
-                <!-- Recent Assignments -->
-                <h2 style="margin-bottom: 20px;">Recent Assignments</h2>
+                <!-- Classroom/Test Cards Section -->
+                <h2 style="margin-bottom: 20px;">Your Tests</h2>
                 <div class="card-grid">
+                    {% for test in tests %}
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">Data Structures Final Project</div>
-                            <div class="card-subtitle">CS101 - Due: 15 Jun 2023</div>
+                            <div class="card-title">{{ test.test_name }}</div>
+                            <div class="card-subtitle">{{ test.department }} - Year {{ test.year }}</div>
                         </div>
                         <div class="card-body">
-                            <p>Students implement and analyze various data structures in Python.</p>
+                            <p>Created: {{ test.created_at.strftime('%Y-%m-%d') }}</p>
                             <div style="display: flex; gap: 15px; margin-top: 15px;">
                                 <div>
-                                    <div style="font-size: 0.9rem; color: var(--text-light);">Submissions</div>
-                                    <div style="font-weight: 700;">32/45</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-light);">Students</div>
+                                    <div style="font-weight: 700;">{{ test.enrollments|length }}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 0.9rem; color: var(--text-light);">Avg. Score</div>
-                                    <div style="font-weight: 700;">84%</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-light);">Submissions</div>
+                                    <div style="font-weight: 700;">{{ test.submissions|length }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer">
-                            <button class="btn btn-sm btn-primary">Evaluate</button>
-                            <button class="btn btn-sm">View Details</button>
+                            <a href="{{ url_for('view_test_results', test_id=test.test_id) }}" class="btn btn-sm btn-primary">View Submissions</a>
+                            <a href="{{ url_for('teacher_report', test_id=test.test_id) }}" class="btn btn-sm btn-success">Download Report</a>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">Web Development Assignment</div>
-                            <div class="card-subtitle">CS205 - Due: 10 Jun 2023</div>
-                        </div>
-                        <div class="card-body">
-                            <p>Create a responsive website using HTML, CSS, and JavaScript.</p>
-                            <div style="display: flex; gap: 15px; margin-top: 15px;">
-                                <div>
-                                    <div style="font-size: 0.9rem; color: var(--text-light);">Submissions</div>
-                                    <div style="font-weight: 700;">38/45</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 0.9rem; color: var(--text-light);">Avg. Score</div>
-                                    <div style="font-weight: 700;">76%</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn btn-sm btn-primary">Evaluate</button>
-                            <button class="btn btn-sm">View Details</button>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
 
-                <!-- Student Performance -->
-                <h2 style="margin-bottom: 20px;">Student Performance Overview</h2>
+                <!-- Recent Assignments Table -->
+                <h2 style="margin-bottom: 20px;">Recent Assignments</h2>
                 <div class="table-container">
-                    <table>
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Completed</th>
-                                <th>Avg. Score</th>
-                                <th>Last Assignment</th>
-                                <th>Status</th>
+                                <th>Test Name</th>
+                                <th>Department / Year</th>
+                                <th>Created</th>
+                                <th>Submissions</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for test in recent_tests %}
                             <tr>
-                                <td>Alex Johnson</td>
-                                <td>12/15</td>
-                                <td>92%</td>
-                                <td>Data Structures</td>
-                                <td><span class="status-badge status-graded">Graded</span></td>
-                                <td><button class="btn btn-sm">View</button></td>
+                                <td>{{ test.test_name }}</td>
+                                <td>{{ test.department }} - Year {{ test.year }}</td>
+                                <td>{{ test.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ test.submissions|length }}</td>
+                                <td>
+                                    <a href="{{ url_for('evaluate_test', test_id=test.test_id) }}" class="btn btn-sm btn-primary">Evaluate</a>
+                                    <a href="{{ url_for('view_test_results', test_id=test.test_id) }}" class="btn btn-sm btn-info">View</a>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Maria Garcia</td>
-                                <td>10/15</td>
-                                <td>78%</td>
-                                <td>Web Development</td>
-                                <td><span class="status-badge status-submitted">Submitted</span></td>
-                                <td><button class="btn btn-sm">Grade</button></td>
-                            </tr>
-                            <tr>
-                                <td>James Wilson</td>
-                                <td>14/15</td>
-                                <td>85%</td>
-                                <td>Data Structures</td>
-                                <td><span class="status-badge status-graded">Graded</span></td>
-                                <td><button class="btn btn-sm">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>Emma Thompson</td>
-                                <td>9/15</td>
-                                <td>65%</td>
-                                <td>Web Development</td>
-                                <td><span class="status-badge status-pending">Pending</span></td>
-                                <td><button class="btn btn-sm">Remind</button></td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Classroom Manager -->
-            <div id="classroom-manager" class="tab-content">
+            <!-- Create Test Section -->
+            <div id="create-test" class="tab-content">
                 <div class="page-header">
-                    <h1 class="page-title">Classroom Manager</h1>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Classroom
-                    </button>
+                    <h1 class="page-title">Create New Test</h1>
                 </div>
 
-                <div class="card-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">CS101 - Intro to Programming</div>
-                            <div class="card-subtitle">45 Students • 5 Assignments</div>
-                        </div>
-                        <div class="card-body">
-                            <p>Introduction to programming concepts using Python.</p>
-                            <div style="margin-top: 15px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                    <span>Assignment Completion:</span>
-                                    <span>84%</span>
-                                </div>
-                                <div style="height: 8px; background-color: var(--medium-gray); border-radius: 4px;">
-                                    <div style="width: 84%; height: 100%; background-color: var(--primary-green); border-radius: 4px;"></div>
-                                </div>
+                <form method="POST" action="{{ url_for('create_test') }}">
+                    <div class="form-section">
+                        <h2 class="form-title">Test Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="test_name">Test Name</label>
+                                <input type="text" id="test_name" name="test_name" class="form-control" placeholder="Enter test name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <select id="department" name="department" class="form-control" required>
+                                    <option value="">Select Department</option>
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="Information Technology">Information Technology</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <button class="btn btn-sm btn-primary">Manage</button>
-                            <button class="btn btn-sm">View Students</button>
-                        </div>
-                    </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">CS205 - Web Development</div>
-                            <div class="card-subtitle">42 Students • 3 Assignments</div>
-                        </div>
-                        <div class="card-body">
-                            <p>Building modern web applications with HTML, CSS, and JavaScript.</p>
-                            <div style="margin-top: 15px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                    <span>Assignment Completion:</span>
-                                    <span>76%</span>
-                                </div>
-                                <div style="height: 8px; background-color: var(--medium-gray); border-radius: 4px;">
-                                    <div style="width: 76%; height: 100%; background-color: var(--primary-blue); border-radius: 4px;"></div>
-                                </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="year">Year</label>
+                                <select id="year" name="year" class="form-control" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1">1st Year</option>
+                                    <option value="2">2nd Year</option>
+                                    <option value="3">3rd Year</option>
+                                    <option value="4">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">Duration (minutes)</label>
+                                <input type="number" id="duration" name="duration" class="form-control" value="60" min="1" required>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <button class="btn btn-sm btn-primary">Manage</button>
-                            <button class="btn btn-sm">View Students</button>
+
+                        <div class="form-group">
+                            <label for="instructions">Instructions</label>
+                            <textarea id="instructions" name="instructions" class="form-control" placeholder="Enter test instructions"></textarea>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Assignment Creator -->
-            <div id="assignment-creator" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Create New Assignment</h1>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Assignment
+                    <div class="form-section">
+                        <h2 class="form-title">Evaluation Settings</h2>
+                        <div class="form-group">
+                            <label>Evaluation Method</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="evaluation_method" id="gemini_method" value="gemini" checked>
+                                <label class="form-check-label" for="gemini_method">
+                                    Gemini API Evaluation
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="evaluation_method" id="algorithm_method" value="algorithm">
+                                <label class="form-check-label" for="algorithm_method">
+                                    Algorithm Evaluation
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Test
                     </button>
-                </div>
-
-                <div class="form-section">
-                    <h2 class="form-title">Assignment Details</h2>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="assignment-title">Assignment Title</label>
-                            <input type="text" id="assignment-title" class="form-control" placeholder="Enter assignment title">
-                        </div>
-                        <div class="form-group">
-                            <label for="assignment-class">Classroom</label>
-                            <select id="assignment-class" class="form-control">
-                                <option value="">Select Classroom</option>
-                                <option value="cs101">CS101 - Intro to Programming</option>
-                                <option value="cs205">CS205 - Web Development</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="assignment-desc">Description</label>
-                        <textarea id="assignment-desc" class="form-control" placeholder="Enter assignment description and instructions"></textarea>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="due-date">Due Date</label>
-                            <input type="date" id="due-date" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="total-points">Total Points</label>
-                            <input type="number" id="total-points" class="form-control" value="100">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h2 class="form-title">Evaluation Rubric</h2>
-                    <div class="rubric-criteria">
-                        <div class="criteria-item">
-                            <input type="text" class="form-control" placeholder="Criterion (e.g. Code Quality)">
-                            <input type="number" class="form-control points" placeholder="Points" value="25">
-                            <i class="fas fa-times" style="color: var(--danger); cursor: pointer;"></i>
-                        </div>
-                        <div class="criteria-item">
-                            <input type="text" class="form-control" placeholder="Criterion (e.g. Functionality)">
-                            <input type="number" class="form-control points" placeholder="Points" value="50">
-                            <i class="fas fa-times" style="color: var(--danger); cursor: pointer;"></i>
-                        </div>
-                        <div class="criteria-item">
-                            <input type="text" class="form-control" placeholder="Criterion (e.g. Documentation)">
-                            <input type="number" class="form-control points" placeholder="Points" value="25">
-                            <i class="fas fa-times" style="color: var(--danger); cursor: pointer;"></i>
-                        </div>
-                        <div class="add-criteria">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Add Evaluation Criterion</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ai-instructions">AI Evaluation Instructions</label>
-                        <textarea id="ai-instructions" class="form-control" placeholder="Provide specific instructions for the AI evaluator"></textarea>
-                    </div>
-                </div>
+                </form>
             </div>
 
             <!-- Evaluation Hub -->
             <div id="evaluation-hub" class="tab-content">
                 <div class="page-header">
                     <h1 class="page-title">Evaluation Hub</h1>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-download"></i> Export Reports
+                    <button class="btn btn-primary" onclick="showTab('create-test')">
+                        <i class="fas fa-plus"></i> New Test
                     </button>
                 </div>
 
                 <div class="tabs">
                     <button class="tab active" onclick="switchEvalTab('pending')">Pending Evaluation</button>
                     <button class="tab" onclick="switchEvalTab('completed')">Completed Evaluations</button>
-                    <button class="tab" onclick="switchEvalTab('evaluate')">Evaluate Submission</button>
                 </div>
 
+                <!-- Pending Evaluations Tab -->
                 <div id="pending-tab" class="tab-content active">
                     <div class="table-container">
-                        <table>
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th>Student</th>
-                                    <th>Assignment</th>
-                                    <th>Class</th>
+                                    <th>Test</th>
+                                    <th>Department</th>
                                     <th>Submitted</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for answer in pending_answers %}
                                 <tr>
-                                    <td>Maria Garcia</td>
-                                    <td>Web Development Assignment</td>
-                                    <td>CS205</td>
-                                    <td>Jun 9, 2023</td>
-                                    <td><span class="status-badge status-submitted">Submitted</span></td>
+                                    <td>{{ answer.student.full_name }}</td>
+                                    <td>{{ answer.test.test_name }}</td>
+                                    <td>{{ answer.test.department }}</td>
+                                    <td>{{ answer.answer_id }}</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary">Evaluate</button>
-                                        <button class="btn btn-sm">View</button>
+                                        <a href="{{ url_for('evaluate_answer', answer_id=answer.answer_id) }}" class="btn btn-sm btn-primary">Evaluate</a>
                                     </td>
                                 </tr>
+                                {% else %}
                                 <tr>
-                                    <td>David Chen</td>
-                                    <td>Data Structures Final Project</td>
-                                    <td>CS101</td>
-                                    <td>Jun 8, 2023</td>
-                                    <td><span class="status-badge status-submitted">Submitted</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary">Evaluate</button>
-                                        <button class="btn btn-sm">View</button>
-                                    </td>
+                                    <td colspan="6" class="text-center">No pending evaluations</td>
                                 </tr>
-                                <tr>
-                                    <td>Emma Thompson</td>
-                                    <td>Web Development Assignment</td>
-                                    <td>CS205</td>
-                                    <td>Jun 10, 2023</td>
-                                    <td><span class="status-badge status-submitted">Submitted</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary">Evaluate</button>
-                                        <button class="btn btn-sm">View</button>
-                                    </td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
+                <!-- Completed Evaluations Tab -->
                 <div id="completed-tab" class="tab-content">
                     <div class="table-container">
-                        <table>
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th>Student</th>
-                                    <th>Assignment</th>
+                                    <th>Test</th>
                                     <th>Score</th>
                                     <th>Evaluation Date</th>
-                                    <th>Feedback</th>
+                                    <th>Method</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for answer in completed_answers %}
                                 <tr>
-                                    <td>Alex Johnson</td>
-                                    <td>Data Structures Final</td>
-                                    <td>92/100</td>
-                                    <td>Jun 12, 2023</td>
-                                    <td>Excellent implementation</td>
+                                    <td>{{ answer.student.full_name }}</td>
+                                    <td>{{ answer.test.test_name }}</td>
+                                    <td>{{ answer.override_score if answer.override_score is not none else answer.score }}/{{ answer.question.max_score }}</td>
+                                    <td>{{ answer.evaluated_at.strftime('%Y-%m-%d') if answer.evaluated_at else '-' }}</td>
+                                    <td>{{ answer.evaluation_method|capitalize }}</td>
                                     <td>
-                                        <button class="btn btn-sm">View Report</button>
+                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                data-bs-target="#overrideModal"
+                                                data-answer-id="{{ answer.answer_id }}"
+                                                data-current-score="{{ answer.override_score if answer.override_score is not none else answer.score }}"
+                                                data-max-score="{{ answer.question.max_score }}">Override</button>
                                     </td>
                                 </tr>
+                                {% else %}
                                 <tr>
-                                    <td>James Wilson</td>
-                                    <td>Data Structures Final</td>
-                                    <td>85/100</td>
-                                    <td>Jun 11, 2023</td>
-                                    <td>Good work, needs better comments</td>
-                                    <td>
-                                        <button class="btn btn-sm">View Report</button>
-                                    </td>
+                                    <td colspan="6" class="text-center">No completed evaluations</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <!-- New Evaluation Section -->
-                <div id="evaluate-tab" class="tab-content">
-                    <div class="evaluation-container">
-                        <div class="evaluation-header">
-                            <h2 class="evaluation-title">Evaluate Assignment</h2>
-                            <div class="status-badge status-review">In Progress</div>
-                        </div>
-
-                        <div class="evaluation-method">
-                            <h3>Select Evaluation Method</h3>
-                            <div class="method-selector">
-                                <div class="method-card" onclick="selectMethod('gemini')">
-                                    <div class="method-icon">
-                                        <i class="fas fa-robot"></i>
-                                    </div>
-                                    <h4 class="method-title">AI Evaluation (Gemini API)</h4>
-                                    <p class="method-desc">Use AI to evaluate text-based assignments</p>
-                                </div>
-
-                                <div class="method-card" onclick="selectMethod('document')">
-                                    <div class="method-icon">
-                                        <i class="fas fa-file-contract"></i>
-                                    </div>
-                                    <h4 class="method-title">Document Comparison</h4>
-                                    <p class="method-desc">Compare student work with expected solution</p>
-                                </div>
-                            </div>
-
-                            <!-- Gemini API Evaluation Form -->
-                            <div id="gemini-form" class="evaluation-form" style="display: none;">
-                                <div class="form-group">
-                                    <label for="assignment-instructions">Assignment Instructions</label>
-                                    <textarea id="assignment-instructions" class="form-control" placeholder="Enter the assignment instructions">Create a Python function to calculate factorial of a number using recursion. The function should handle edge cases properly.</textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="rubric">Evaluation Rubric</label>
-                                    <textarea id="rubric" class="form-control" placeholder="Enter evaluation criteria">1. Correctness (40 points): Does the solution produce correct results?
-2. Edge Cases (20 points): Does it handle 0, negative numbers, and large inputs?
-3. Code Quality (20 points): Is the code clean and well-structured?
-4. Documentation (20 points): Are comments and docstrings provided?</textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="student-submission">Student Submission</label>
-                                    <textarea id="student-submission" class="form-control" placeholder="Paste student's work here" style="min-height: 200px;">def factorial(n):
-    if n == 0:
-        return 1
-    else:
-        return n * factorial(n-1)</textarea>
-                                </div>
-
-                                <button class="btn btn-primary" onclick="runGeminiEvaluation()">
-                                    <i class="fas fa-play"></i> Run AI Evaluation
-                                </button>
-                            </div>
-
-                            <!-- Document Comparison Form -->
-                            <div id="document-form" class="evaluation-form" style="display: none;">
-                                <div class="form-row">
-                                    <div class="form-column">
-                                        <div class="form-group">
-                                            <label>Expected Solution</label>
-                                            <div class="file-upload" onclick="document.getElementById('expected-file').click()">
-                                                <i class="fas fa-cloud-upload-alt"></i>
-                                                <p>Click to upload expected solution document</p>
-                                                <div id="expected-file-name" class="file-name">No file selected</div>
-                                                <input type="file" id="expected-file" style="display: none;" onchange="handleFileSelect('expected')">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-column">
-                                        <div class="form-group">
-                                            <label>Student Submission</label>
-                                            <div class="file-upload" onclick="document.getElementById('student-file').click()">
-                                                <i class="fas fa-file-upload"></i>
-                                                <p>Click to upload student submission</p>
-                                                <div id="student-file-name" class="file-name">No file selected</div>
-                                                <input type="file" id="student-file" style="display: none;" onchange="handleFileSelect('student')">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="comparison-settings">Comparison Settings</label>
-                                    <select id="comparison-settings" class="form-control">
-                                        <option value="strict">Strict Comparison (character-level)</option>
-                                        <option value="semantic">Semantic Comparison (meaning-based)</option>
-                                        <option value="code">Code Structure (for programming assignments)</option>
-                                    </select>
-                                </div>
-
-                                <button class="btn btn-primary" onclick="runDocumentComparison()">
-                                    <i class="fas fa-exchange-alt"></i> Compare Documents
-                                </button>
-                            </div>
-
-                            <!-- Results Container -->
-                            <div id="evaluation-results" class="results-container">
-                                <h3>Evaluation Results</h3>
-                                <div id="results-content"></div>
-
-                                <div class="card-footer" style="margin-top: 20px;">
-                                    <button class="btn btn-green" id="save-evaluation" style="display: none;">
-                                        <i class="fas fa-save"></i> Save Evaluation
-                                    </button>
-                                    <button class="btn btn-orange" id="regenerate" style="display: none;">
-                                        <i class="fas fa-sync"></i> Regenerate
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Student View -->
-            <div id="student-view" class="tab-content">
+            <!-- Reports Section -->
+            <div id="reports" class="tab-content">
                 <div class="page-header">
-                    <h1 class="page-title">Student Portal</h1>
-                    <div class="user-info">
-                        <div class="user-name">Alex Johnson</div>
-                        <div class="user-role">Student</div>
-                    </div>
+                    <h1 class="page-title">Test Reports</h1>
                 </div>
 
-                <div class="tabs">
-                    <button class="tab active" onclick="switchStudentTab('classroom')">My Classrooms</button>
-                    <button class="tab" onclick="switchStudentTab('assignments')">Assignments</button>
-                    <button class="tab" onclick="switchStudentTab('performance')">My Performance</button>
-                </div>
-
-                <div id="classroom-tab" class="tab-content active">
-                    <div class="card-grid">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">CS101 - Intro to Programming</div>
-                                <div class="card-subtitle">Instructor: Prof. Sarah Johnson</div>
-                            </div>
-                            <div class="card-body">
-                                <p>Introduction to programming concepts using Python.</p>
-                                <div style="margin-top: 15px;">
-                                    <div style="display: flex; gap: 15px;">
-                                        <div>
-                                            <div style="font-size: 0.9rem; color: var(--text-light);">Assignments</div>
-                                            <div style="font-weight: 700;">5</div>
-                                        </div>
-                                        <div>
-                                            <div style="font-size: 0.9rem; color: var(--text-light);">Avg. Grade</div>
-                                            <div style="font-weight: 700;">92%</div>
-                                        </div>
-                                    </div>
+                <div class="card-grid">
+                    {% for test in tests %}
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">{{ test.test_name }}</div>
+                            <div class="card-subtitle">{{ test.department }} - Year {{ test.year }}</div>
+                        </div>
+                        <div class="card-body">
+                            <p>Created: {{ test.created_at.strftime('%Y-%m-%d') }}</p>
+                            <div style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Submissions:</span>
+                                    <span>{{ test.submissions|length }}/{{ test.enrollments|length }}</span>
+                                </div>
+                                <div style="height: 8px; background-color: var(--medium-gray); border-radius: 4px;">
+                                    <div style="width: {{ (test.submissions|length / test.enrollments|length * 100) if test.enrollments|length > 0 else 0 }}%; height: 100%; background-color: var(--primary-blue); border-radius: 4px;"></div>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <button class="btn btn-sm btn-primary">View Assignments</button>
-                            </div>
                         </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">CS205 - Web Development</div>
-                                <div class="card-subtitle">Instructor: Prof. Michael Brown</div>
-                            </div>
-                            <div class="card-body">
-                                <p>Building modern web applications with HTML, CSS, and JavaScript.</p>
-                                <div style="margin-top: 15px;">
-                                    <div style="display: flex; gap: 15px;">
-                                        <div>
-                                            <div style="font-size: 0.9rem; color: var(--text-light);">Assignments</div>
-                                            <div style="font-weight: 700;">3</div>
-                                        </div>
-                                        <div>
-                                            <div style="font-size: 0.9rem; color: var(--text-light);">Avg. Grade</div>
-                                            <div style="font-weight: 700;">88%</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <button class="btn btn-sm btn-primary">View Assignments</button>
-                            </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('teacher_report', test_id=test.test_id) }}" class="btn btn-sm btn-primary">Download Report</a>
                         </div>
                     </div>
-                </div>
-
-                <div id="assignments-tab" class="tab-content">
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Assignment</th>
-                                    <th>Class</th>
-                                    <th>Due Date</th>
-                                    <th>Status</th>
-                                    <th>Score</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Data Structures Final Project</td>
-                                    <td>CS101</td>
-                                    <td>Jun 15, 2023</td>
-                                    <td><span class="status-badge status-graded">Graded</span></td>
-                                    <td>92/100</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary">View Report</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Web Development Assignment</td>
-                                    <td>CS205</td>
-                                    <td>Jun 10, 2023</td>
-                                    <td><span class="status-badge status-submitted">Submitted</span></td>
-                                    <td>-</td>
-                                    <td>
-                                        <button class="btn btn-sm">View Details</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Algorithms Problem Set</td>
-                                    <td>CS101</td>
-                                    <td>Jun 20, 2023</td>
-                                    <td><span class="status-badge status-pending">Not Started</span></td>
-                                    <td>-</td>
-                                    <td>
-                                        <button class="btn btn-sm">Start</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Override Score Modal -->
+    <div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="overrideModalLabel">Override Score</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="overrideForm" method="POST" action="">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="newScore" class="form-label">New Score</label>
+                            <input type="number" class="form-control" id="newScore" name="new_score" min="0" step="0.1" required>
+                            <div class="form-text">Max score: <span id="maxScore"></span></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for override</label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Tab navigation
         function showTab(tabId) {
@@ -1464,291 +1170,31 @@
 
             // Show the correct content
             document.getElementById(tab + '-tab').classList.add('active');
-
-            // Reset evaluation form if switching to evaluate tab
-            if (tab === 'evaluate') {
-                resetEvaluationForm();
-            }
         }
 
-        // Student tab switching
-        function switchStudentTab(tab) {
-            // Update tabs
-            document.querySelectorAll('#student-view .tab').forEach(t => {
-                t.classList.remove('active');
-            });
+        // Set up the override modal
+        const overrideModal = document.getElementById('overrideModal');
+        overrideModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const answerId = button.getAttribute('data-answer-id');
+            const currentScore = button.getAttribute('data-current-score');
+            const maxScore = button.getAttribute('data-max-score');
 
-            // Activate clicked tab
-            event.currentTarget.classList.add('active');
+            const form = document.getElementById('overrideForm');
+            form.action = `/teacher/override/${answerId}`;
 
-            // Hide all student tab contents
-            document.querySelectorAll('#student-view .tab-content').forEach(tc => {
-                tc.classList.remove('active');
-            });
-
-            // Show the correct content
-            document.getElementById(tab + '-tab').classList.add('active');
-        }
-
-        // Evaluation method selection
-        function selectMethod(method) {
-            // Update UI
-            document.querySelectorAll('.method-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-
-            // Show the correct form
-            document.getElementById('gemini-form').style.display = 'none';
-            document.getElementById('document-form').style.display = 'none';
-            document.getElementById(method + '-form').style.display = 'block';
-
-            // Hide results
-            document.getElementById('evaluation-results').style.display = 'none';
-        }
-
-        // Handle file selection
-        function handleFileSelect(type) {
-            const fileInput = document.getElementById(type + '-file');
-            const fileName = document.getElementById(type + '-file-name');
-
-            if (fileInput.files.length > 0) {
-                fileName.textContent = fileInput.files[0].name;
-            } else {
-                fileName.textContent = 'No file selected';
-            }
-        }
-
-        // Reset evaluation form
-        function resetEvaluationForm() {
-            document.querySelectorAll('.method-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            document.getElementById('gemini-form').style.display = 'none';
-            document.getElementById('document-form').style.display = 'none';
-            document.getElementById('evaluation-results').style.display = 'none';
-            document.getElementById('save-evaluation').style.display = 'none';
-            document.getElementById('regenerate').style.display = 'none';
-        }
-
-        // Run Gemini API evaluation
-        function runGeminiEvaluation() {
-            const resultsContainer = document.getElementById('evaluation-results');
-            const resultsContent = document.getElementById('results-content');
-
-            // Show loading state
-            resultsContent.innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-blue);"></i>
-                    <p style="margin-top: 15px;">Evaluating submission with Gemini API...</p>
-                </div>
-            `;
-            resultsContainer.style.display = 'block';
-
-            // Simulate API call delay
-            setTimeout(() => {
-                // Display results
-                resultsContent.innerHTML = `
-                    <div class="score-display">Score: 85/100</div>
-
-                    <div class="feedback-section">
-                        <h4>Overall Feedback</h4>
-                        <p>The solution correctly implements the factorial function using recursion and handles the base case of n=0. However, it lacks input validation and proper documentation.</p>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Rubric Evaluation</h4>
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Correctness (40/40)</span>
-                                <span>40 points</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 100%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Edge Cases (15/20)</span>
-                                <span>15 points</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 75%"></div>
-                            </div>
-                            <p style="margin-top: 5px; color: var(--warning);">Solution does not handle negative numbers or large inputs</p>
-                        </div>
-
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Code Quality (20/20)</span>
-                                <span>20 points</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 100%"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Documentation (10/20)</span>
-                                <span>10 points</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 50%"></div>
-                            </div>
-                            <p style="margin-top: 5px; color: var(--warning);">Missing docstring and comments</p>
-                        </div>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Detailed Analysis</h4>
-                        <p>The recursive implementation is correct and efficient. However, the function does not validate inputs and would enter infinite recursion with negative numbers. For large inputs, Python recursion limits would be exceeded. Adding input validation and converting to iterative approach would improve robustness.</p>
-                        <p>Documentation is minimal. Adding a docstring explaining the function's purpose and parameters would improve maintainability.</p>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Suggestions for Improvement</h4>
-                        <ul>
-                            <li>Add input validation to handle negative numbers and large inputs</li>
-                            <li>Consider iterative implementation for better performance with large numbers</li>
-                            <li>Add a docstring to describe the function</li>
-                            <li>Include comments explaining the base case and recursion</li>
-                        </ul>
-                    </div>
-                `;
-
-                // Show action buttons
-                document.getElementById('save-evaluation').style.display = 'inline-flex';
-                document.getElementById('regenerate').style.display = 'inline-flex';
-            }, 2000);
-        }
-
-        // Run document comparison
-        function runDocumentComparison() {
-            const resultsContainer = document.getElementById('evaluation-results');
-            const resultsContent = document.getElementById('results-content');
-
-            // Show loading state
-            resultsContent.innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-blue);"></i>
-                    <p style="margin-top: 15px;">Comparing documents...</p>
-                </div>
-            `;
-            resultsContainer.style.display = 'block';
-
-            // Simulate comparison process
-            setTimeout(() => {
-                // Display results
-                resultsContent.innerHTML = `
-                    <div class="score-display">Similarity: 78%</div>
-
-                    <div class="feedback-section">
-                        <h4>Document Comparison Results</h4>
-                        <p>The student submission matches the expected solution in structure and key concepts but differs in implementation details and formatting.</p>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Key Differences</h4>
-                        <ul>
-                            <li>Variable naming conventions differ (camelCase vs snake_case)</li>
-                            <li>Missing error handling for invalid inputs</li>
-                            <li>Student solution uses recursion while expected solution uses iteration</li>
-                            <li>Formatting inconsistencies in 5 sections</li>
-                            <li>Missing documentation comments in 3 sections</li>
-                        </ul>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Similarity Breakdown</h4>
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Code Structure</span>
-                                <span>85%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 85%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Functionality</span>
-                                <span>95%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 95%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Documentation</span>
-                                <span>45%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 45%"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Code Style</span>
-                                <span>65%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 65%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="feedback-section">
-                        <h4>Recommendations</h4>
-                        <ul>
-                            <li>Standardize variable naming to match project conventions</li>
-                            <li>Add error handling for edge cases</li>
-                            <li>Improve code comments and documentation</li>
-                            <li>Consider performance implications of recursion vs iteration</li>
-                        </ul>
-                    </div>
-                `;
-
-                // Show action buttons
-                document.getElementById('save-evaluation').style.display = 'inline-flex';
-                document.getElementById('regenerate').style.display = 'inline-flex';
-            }, 2500);
-        }
-
-        // Add rubric criterion
-        document.querySelector('.add-criteria').addEventListener('click', function() {
-            const criteriaContainer = document.querySelector('.rubric-criteria');
-            const newCriteria = document.createElement('div');
-            newCriteria.className = 'criteria-item';
-            newCriteria.innerHTML = `
-                <input type="text" class="form-control" placeholder="Criterion">
-                <input type="number" class="form-control points" placeholder="Points" value="0">
-                <i class="fas fa-times" style="color: var(--danger); cursor: pointer;"></i>
-            `;
-            criteriaContainer.insertBefore(newCriteria, this);
-
-            // Add event to remove button
-            newCriteria.querySelector('.fa-times').addEventListener('click', function() {
-                this.parentElement.remove();
-            });
+            document.getElementById('newScore').value = currentScore;
+            document.getElementById('newScore').max = maxScore;
+            document.getElementById('maxScore').textContent = maxScore;
         });
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Add event to existing remove buttons
-            document.querySelectorAll('.fa-times').forEach(icon => {
-                icon.addEventListener('click', function() {
-                    this.parentElement.remove();
-                });
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
-
-            // Set default method
-            document.querySelectorAll('.method-card')[0].click();
         });
     </script>
 </body>

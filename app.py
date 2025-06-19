@@ -487,16 +487,39 @@ def teacher_dashboard():
     teacher_id = session['teacher_id']
     teacher = Teacher.query.get(teacher_id)
 
-    stats = {
-        'tests': Test.query.filter_by(teacher_id=teacher_id).count(),
-        # Remove department reference since Teacher doesn't have department
-        'recent_tests': Test.query.filter_by(teacher_id=teacher_id)
-        .order_by(Test.created_at.desc())
-        .limit(5).all()
-    }
+    # Get all tests for this teacher
+    tests = Test.query.filter_by(teacher_id=teacher_id).all()
 
-    return render_template('teacher_dashboard.html', teacher=teacher, stats=stats)
+    # Get recent tests (5 most recent)
+    recent_tests = Test.query.filter_by(teacher_id=teacher_id) \
+        .order_by(Test.created_at.desc()).limit(5).all()
 
+    # Calculate total enrollments
+    enrollment_count = Enrollment.query.filter(
+        Enrollment.test_id.in_([t.test_id for t in tests])
+    ).count()
+
+    # Get pending evaluations
+    pending_answers = StudentAnswer.query.filter(
+        StudentAnswer.score == None,
+        StudentAnswer.test_id.in_([t.test_id for t in tests])
+    ).all()
+
+    # Get completed evaluations
+    completed_answers = StudentAnswer.query.filter(
+        StudentAnswer.score != None,
+        StudentAnswer.test_id.in_([t.test_id for t in tests])
+    ).all()
+
+    return render_template('teacher_dashboard.html',
+                           teacher=teacher,
+                           tests=tests,
+                           recent_tests=recent_tests,
+                           total_enrollments=enrollment_count,
+                           pending_evaluations=len(pending_answers),
+                           pending_answers=pending_answers,
+                           completed_answers=completed_answers
+                           )
 
 @app.route('/teacher/tests', methods=['GET'])
 def teacher_tests():
