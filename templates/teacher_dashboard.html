@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Assignment Evaluator | Teacher Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+          rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
@@ -47,7 +48,6 @@
             padding: 0 20px;
         }
 
-        /* Header Styles */
         header {
             background-color: white;
             box-shadow: var(--shadow-sm);
@@ -146,20 +146,18 @@
             font-weight: 500;
         }
 
-        /* Main Layout */
         .dashboard-layout {
             display: flex;
-            min-height: calc(100vh - 70px); /* Adjusted for header height */
-            margin-top: 70px; /* Header height */
+            min-height: calc(100vh - 70px);
+            margin-top: 70px;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 250px;
             background-color: white;
             padding: 20px 0;
             box-shadow: var(--shadow-sm);
-            height: calc(100vh - 70px); /* Full height minus header */
+            height: calc(100vh - 70px);
             position: fixed;
             overflow-y: auto;
             transition: width 0.3s ease;
@@ -185,35 +183,34 @@
             cursor: pointer;
             transition: var(--transition);
             border-left: 3px solid transparent;
-            text-decoration: none; /* For anchor tags */
-            color: var(--text-dark); /* For anchor tags */
-        }
-        .menu-item a { /* Style for anchor tags within menu items */
             text-decoration: none;
-            color: inherit; /* Inherit color from parent .menu-item */
+            color: var(--text-dark);
+        }
+
+        .menu-item a {
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             gap: 12px;
             width: 100%;
         }
 
-
         .menu-item:hover, .menu-item.active {
             background-color: rgba(52, 152, 219, 0.1);
             border-left: 3px solid var(--primary-blue);
             color: var(--primary-blue);
         }
-         .menu-item:hover a, .menu-item.active a { /* Ensure anchor text color changes too */
+
+        .menu-item:hover a, .menu-item.active a {
             color: var(--primary-blue);
         }
-
 
         .menu-item i {
             width: 24px;
             text-align: center;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 250px;
@@ -258,28 +255,9 @@
             box-shadow: var(--shadow-md);
         }
 
-        .btn-green {
-            background-color: var(--primary-green);
-            color: white;
-        }
-
-        .btn-green:hover {
-            background-color: #27ae60;
-        }
-
-        .btn-orange {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .btn-orange:hover {
-            background-color: #e67e22;
-        }
-
-        /* Dashboard Widgets */
         .dashboard-widgets {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjusted minmax */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
         }
@@ -328,7 +306,6 @@
             font-size: 0.95rem;
         }
 
-        /* Cards */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -384,7 +361,6 @@
             font-size: 0.9rem;
         }
 
-        /* Forms */
         .form-section {
             background-color: white;
             border-radius: 12px;
@@ -420,7 +396,7 @@
             color: var(--text-dark);
         }
 
-        .form-control, .form-select { /* Added .form-select */
+        .form-control, .form-select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid var(--medium-gray);
@@ -428,7 +404,7 @@
             font-size: 1rem;
             transition: var(--transition);
             font-family: 'Poppins', sans-serif;
-            background-color: white; /* Ensure select background is white */
+            background-color: white;
         }
 
         .form-control:focus, .form-select:focus {
@@ -442,38 +418,6 @@
             resize: vertical;
         }
 
-        .rubric-criteria {
-            background-color: var(--light-gray);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .criteria-item {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-
-        .criteria-item input {
-            flex: 1;
-        }
-
-        .criteria-item .points {
-            width: 80px;
-        }
-
-        .add-criteria {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--primary-blue);
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        /* Tables */
         .table-container {
             background-color: white;
             border-radius: 12px;
@@ -512,27 +456,16 @@
             font-weight: 500;
         }
 
-        .status-submitted { /* Used for evaluated in some contexts */
-            background-color: rgba(46, 204, 113, 0.1);
-            color: var(--primary-green);
-        }
-
         .status-pending {
             background-color: rgba(243, 156, 18, 0.1);
             color: var(--warning);
         }
 
-        .status-graded { /* Alias for evaluated */
+        .status-graded {
             background-color: rgba(52, 152, 219, 0.1);
             color: var(--primary-blue);
         }
 
-        .status-review {
-            background-color: rgba(155, 89, 182, 0.1);
-            color: var(--primary-purple);
-        }
-
-        /* Tabs */
         .tabs {
             display: flex;
             border-bottom: 2px solid var(--medium-gray);
@@ -558,7 +491,7 @@
         .tab.active::after {
             content: '';
             position: absolute;
-            bottom: -2px; /* Align with border-bottom of .tabs */
+            bottom: -2px;
             left: 0;
             width: 100%;
             height: 3px;
@@ -573,7 +506,6 @@
             display: block;
         }
 
-        /* Evaluation Styles */
         .evaluation-container {
             background-color: white;
             border-radius: 12px;
@@ -598,209 +530,112 @@
             color: var(--text-dark);
         }
 
-        .evaluation-method {
-            margin-bottom: 25px;
-        }
-
-        .method-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .method-card {
-            flex: 1;
-            padding: 20px;
-            border-radius: 10px;
-            background: var(--light-gray);
-            cursor: pointer;
-            text-align: center;
-            transition: var(--transition);
-            border: 2px solid transparent;
-        }
-
-        .method-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .method-card.selected {
-            border-color: var(--primary-blue);
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-
-        .method-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--primary-blue);
-        }
-
-        .method-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
-
-        .method-desc {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .form-row { /* For create assignment */
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-column { /* For create assignment */
-            flex: 1;
-        }
-
-        .results-container {
-            background-color: var(--light-gray);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 25px;
-            display: none; /* Controlled by JS */
-        }
-
-        .score-display {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            text-align: center;
-            margin: 15px 0;
-        }
-
         .feedback-section {
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
-            border: 1px solid var(--medium-gray); /* Added border */
+            border: 1px solid var(--medium-gray);
         }
 
-        .feedback-section h5 { /* Changed from h4 for consistency */
+        .feedback-section h5 {
             margin-bottom: 10px;
             color: var(--dark-gray);
-            font-size: 1.1rem; /* Adjusted size */
+            font-size: 1.1rem;
         }
 
-        .progress-bar { /* For report cards */
-            height: 10px;
-            background: var(--medium-gray);
-            border-radius: 5px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill { /* For report cards */
-            height: 100%;
-            background: var(--primary-green);
-            border-radius: 5px;
-        }
-
-        .file-upload { /* If needed for future file uploads */
-            border: 2px dashed var(--medium-gray);
-            border-radius: 8px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .file-upload:hover {
-            border-color: var(--primary-blue);
-            background: rgba(52, 152, 219, 0.05);
-        }
-
-        .file-upload i {
-            font-size: 2.5rem;
-            color: var(--primary-blue);
-            margin-bottom: 15px;
-        }
-
-        .file-name {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        /* Responsive Design */
         @media (max-width: 992px) {
             .sidebar {
                 width: 70px;
             }
-            .sidebar:hover { /* Expand sidebar on hover on medium devices */
+
+            .sidebar:hover {
                 width: 250px;
             }
+
             .sidebar:hover .menu-text {
                 display: inline;
             }
+
             .sidebar .menu-text {
                 display: none;
             }
+
             .main-content {
                 margin-left: 70px;
             }
-            .sidebar:hover + .main-content { /* Push content when sidebar expands */
-                 margin-left: 250px;
-            }
 
-            .form-row { /* For create assignment */
-                flex-direction: column;
-            }
-
-            .method-selector { /* For evaluation method cards if used */
-                flex-direction: column;
+            .sidebar:hover + .main-content {
+                margin-left: 250px;
             }
         }
 
         @media (max-width: 768px) {
-            .nav-links { /* Hide top nav links on small screens */
+            .nav-links {
                 display: none;
             }
+
             .sidebar {
-                width: 0; /* Collapsed by default */
+                width: 0;
                 overflow: hidden;
-                z-index: 900; /* Below header but above content */
+                z-index: 900;
             }
-            .sidebar.active { /* When toggled */
+
+            .sidebar.active {
                 width: 250px;
             }
-            .sidebar.active .menu-text { /* Show text when active on mobile */
+
+            .sidebar.active .menu-text {
                 display: inline;
             }
+
             .main-content {
                 margin-left: 0;
                 padding: 20px;
             }
-             .sidebar:hover + .main-content { /* Prevent hover push on mobile */
-                 margin-left: 0px;
+
+            .sidebar:hover + .main-content {
+                margin-left: 0px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .page-header .filter-form {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .page-header .filter-form .form-select, .page-header .filter-form .btn {
+                width: 100%;
+                margin-bottom: 10px;
             }
         }
 
-        ol, ul { /* Reset default padding/margin for lists */
+        ol, ul {
             padding-left: 0;
-            margin-bottom: 0; /* Bootstrap adds margin-bottom to ul */
+            margin-bottom: 0;
         }
-        .list-group-flush .list-group-item { /* Remove borders for flush lists */
+
+        .list-group-flush .list-group-item {
             border-width: 0;
         }
 
-
-        .assignment-card { /* For active assignments on dashboard */
+        .assignment-card {
             border-left: 4px solid var(--primary-blue);
             transition: all 0.3s ease;
         }
 
         .assignment-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .deadline-badge {
-            background-color: #ff6b6b; /* A distinct red for deadlines */
+            background-color: #ff6b6b;
             color: white;
             padding: 3px 8px;
             border-radius: 12px;
@@ -808,63 +643,55 @@
             font-weight: 500;
         }
 
-        .submission-status { /* For active assignment cards */
+        .submission-status {
             display: inline-block;
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.85rem;
             margin-right: 5px;
-            margin-bottom: 5px; /* Spacing for wrapped items */
+            margin-bottom: 5px;
         }
 
         .status-not-submitted {
-            background-color: rgba(231, 76, 60, 0.1); /* Light red */
+            background-color: rgba(231, 76, 60, 0.1);
             color: #e74c3c;
         }
 
-        .status-pending-eval { /* Same as .status-pending */
-            background-color: rgba(243, 156, 18, 0.1); /* Light orange */
+        .status-pending-eval {
+            background-color: rgba(243, 156, 18, 0.1);
             color: #f39c12;
         }
 
-        .status-evaluated { /* Same as .status-submitted or .status-graded */
-            background-color: rgba(46, 204, 113, 0.1); /* Light green */
+        .status-evaluated {
+            background-color: rgba(46, 204, 113, 0.1);
             color: #2ecc71;
         }
 
-        .evaluation-tab-content { /* For Evaluation Hub tabs */
-            max-height: 600px; /* Increased height */
+        .evaluation-tab-content {
+            max-height: 70vh;
             overflow-y: auto;
             padding: 15px;
-            background-color: #f8f9fa; /* Light background for tab content area */
+            background-color: #f8f9fa;
             border-radius: 8px;
         }
 
-        .answer-text { /* For displaying student answers in Eval Hub */
+        .answer-text {
             background-color: white;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #e9ecef;
             margin-bottom: 15px;
-            white-space: pre-wrap; /* Preserve line breaks in answers */
-            max-height: 200px; /* Limit height and make scrollable if needed */
+            white-space: pre-wrap;
+            max-height: 200px;
             overflow-y: auto;
         }
 
-        .override-form { /* Style for override score modal form if needed */
-            background-color: #fff8e1; /* Light yellow */
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107; /* Amber */
-        }
-
-        /* Mobile Menu Toggle */
         .menu-toggle {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
-            top: 15px; /* Align with header items */
+            top: 15px;
             left: 15px;
-            z-index: 1100; /* Above header */
+            z-index: 1100;
             background: var(--primary-blue);
             color: white;
             border: none;
@@ -876,957 +703,843 @@
 
         @media (max-width: 768px) {
             .menu-toggle {
-                display: block; /* Show on mobile */
+                display: block;
             }
-            .navbar .logo { /* Adjust logo size on mobile */
+
+            .navbar .logo {
                 font-size: 1.5rem;
             }
         }
 
-        /* Flash messages styling */
         .flash-messages {
             position: fixed;
-            top: 80px; /* Below header */
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1050; /* Above most content */
+            z-index: 1050;
             width: auto;
             max-width: 90%;
+            min-width: 300px;
         }
+
         .alert {
             box-shadow: var(--shadow-md);
         }
 
+        .filter-form .form-select, .filter-form .btn {
+            height: auto;
+            padding-top: .5rem;
+            padding-bottom: .5rem;
+        }
+
+        /* Adjusted for better text visibility */
+        .filter-form {
+            align-items: center;
+        }
+
+        /* Vertically align items in filter form */
     </style>
 </head>
 <body>
-    <!-- Flash Messages Container -->
-    <div class="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show"
+         role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
 
-    <!-- Mobile Menu Toggle -->
-    <button class="menu-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
+<button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
-    <!-- Header/Navigation -->
-    <header>
-        <div class="container">
-            <nav class="navbar">
-                <a href="{{ url_for('teacher_dashboard') }}" class="logo"> <!-- Changed href -->
-                    <i class="fas fa-robot"></i>
-                    AI <span>Assignment</span> Evaluator
-                </a>
-                <ul class="nav-links">
-                    <!-- Top nav links can be dynamic or link to sections if it were a true SPA -->
-                    <li><a href="#" onclick="showTab('teacher-dashboard'); return false;" class="active">Dashboard</a></li>
-                    <li><a href="#" onclick="showTab('classroom-manager'); return false;">Classrooms</a></li>
-                    <li><a href="#" onclick="showTab('create-assignment'); return false;">Assignments</a></li>
-                    <li><a href="#" onclick="showTab('evaluation-hub'); return false;">Evaluations</a></li>
-                </ul>
-                <div class="user-menu">
-                    <div class="user-info">
-                        <div class="user-name">Welcome, {{ teacher.full_name if teacher else 'Teacher' }}</div>
-                        <div class="user-role">Teacher Portal</div>
-                    </div>
-                    <div class="user-avatar">{{ (teacher.full_name[0] if teacher and teacher.full_name else 'T')|upper }}</div>
-                </div>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Main Layout -->
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-title">Teacher Portal</div>
-            <ul class="sidebar-menu">
-                <li class="menu-item active" onclick="showTab('teacher-dashboard')">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span class="menu-text">Dashboard</span>
-                </li>
-                <li class="menu-item" onclick="showTab('create-assignment')">
-                    <i class="fas fa-plus-circle"></i>
-                    <span class="menu-text">Create Assignment</span>
-                </li>
-                <li class="menu-item" onclick="showTab('classroom-manager')">
-                    <i class="fas fa-chalkboard"></i>
-                    <span class="menu-text">Classroom Manager</span>
-                </li>
-                <li class="menu-item" onclick="showTab('evaluation-hub')">
-                    <i class="fas fa-clipboard-check"></i>
-                    <span class="menu-text">Evaluation Hub</span>
-                </li>
-                <li class="menu-item" onclick="showTab('reports')">
-                    <i class="fas fa-chart-bar"></i>
-                    <span class="menu-text">Reports</span>
-                </li>
-                <li class="menu-item">
-                    <a href="{{ url_for('teacher_logout') }}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span class="menu-text">Logout</span>
-                    </a>
-                </li>
+<header>
+    <div class="container">
+        <nav class="navbar">
+            <a href="{{ url_for('teacher_dashboard') }}" class="logo"><i class="fas fa-robot"></i> AI
+                <span>Assignment</span> Evaluator</a>
+            <ul class="nav-links">
+                <li><a href="#" onclick="showTab('teacher-dashboard'); return false;" class="active">Dashboard</a></li>
+                <li><a href="#" onclick="showTab('classroom-manager'); return false;">Classrooms</a></li>
+                <li><a href="#" onclick="showTab('create-assignment'); return false;">Assignments</a></li>
+                <li><a href="#" onclick="showTab('evaluation-hub'); return false;">Evaluations</a></li>
             </ul>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Teacher Dashboard Summary -->
-            <div id="teacher-dashboard" class="tab-content active">
-                <div class="page-header">
-                    <h1 class="page-title">Teacher Dashboard</h1>
-                    <button class="btn btn-primary" onclick="showTab('create-assignment')">
-                        <i class="fas fa-plus"></i> New Assignment
-                    </button>
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">Welcome, {{ teacher.full_name if teacher else 'Teacher' }}</div>
+                    <div class="user-role">Teacher Portal</div>
                 </div>
-
-                <!-- Dashboard Statistics -->
-                <div class="dashboard-widgets">
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="widget-title">Total Classrooms</div>
-                            <div class="widget-icon"><i class="fas fa-chalkboard"></i></div>
-                        </div>
-                        <div class="widget-value">{{ classrooms|length }}</div>
-                        <div class="widget-description">Active classrooms you teach</div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="widget-title">Assignments Created</div>
-                            <div class="widget-icon"><i class="fas fa-tasks"></i></div>
-                        </div>
-                        <div class="widget-value">{{ assignments|length }}</div>
-                        <div class="widget-description">Total assignments by you</div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="widget-title">Pending Evaluations</div>
-                            <div class="widget-icon"><i class="fas fa-clipboard-list"></i></div>
-                        </div>
-                        <div class="widget-value">{{ pending_evaluations if pending_evaluations is defined else 'N/A' }}</div>
-                        <div class="widget-description">Submissions awaiting your review</div>
-                    </div>
-
-                    <div class="widget">
-                        <div class="widget-header">
-                            <div class="widget-title">Students Enrolled</div>
-                            <div class="widget-icon"><i class="fas fa-users"></i></div>
-                        </div>
-                        <div class="widget-value">{{ total_enrollments if total_enrollments is defined else 'N/A' }}</div>
-                        <div class="widget-description">Across all your classrooms</div>
-                    </div>
-                </div>
-
-                <!-- Active Assignments Section -->
-                <h2 style="margin-bottom: 20px;">Active Assignments</h2>
-                <div class="card-grid">
-                    {% if active_assignments %}
-                        {% for assignment in active_assignments %}
-                        <div class="card assignment-card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="card-title">{{ assignment.title }}</div>
-                                        <div class="card-subtitle">{{ assignment.classroom.name }} &bull; {{ assignment.classroom.department }} - Year {{ assignment.classroom.year }}</div>
-                                    </div>
-                                    <div>
-                                        <span class="deadline-badge">
-                                            <i class="fas fa-clock me-1"></i>
-                                            Due: {{ assignment.submission_deadline.strftime('%b %d, %Y %H:%M') }} UTC
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <p>{{ assignment.instructions|truncate(120) }}</p>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <div>
-                                        <span class="submission-status status-not-submitted" title="Students who haven't submitted yet">
-                                            Not Submitted: {{ assignment.submissions_not_submitted_count }}
-                                        </span>
-                                        <span class="submission-status status-pending-eval" title="Submitted, awaiting evaluation">
-                                            Pending Eval: {{ assignment.submissions_pending_eval_count }}
-                                        </span>
-                                        <span class="submission-status status-evaluated" title="Evaluated submissions">
-                                            Evaluated: {{ assignment.submissions_evaluated_count }}
-                                        </span>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="text-muted small">Eval Method / Max Score</div>
-                                        <div>{{ assignment.evaluation_method|capitalize }} / {{ assignment.max_score }} pts</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-eye me-1"></i> View Submissions
-                                </a>
-                                <a href="{{ url_for('teacher_report_assignment', assignment_id=assignment.id) }}" class="btn btn-sm btn-success" target="_blank">
-                                    <i class="fas fa-download me-1"></i> PDF Report
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="alert alert-info w-100">
-                        No active assignments. Create your first assignment to get started!
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Recent Classrooms Table -->
-                <h2 style="margin-bottom: 20px;">Your Classrooms</h2>
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Classroom Name</th>
-                                <th>Department / Year</th>
-                                <th>Assignments</th>
-                                <th>Students</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if classrooms %}
-                                {% for classroom in classrooms %}
-                                <tr>
-                                    <td>{{ classroom.name }}</td>
-                                    <td>{{ classroom.department }} - Year {{ classroom.year }}</td>
-                                    <td>{{ classroom.assignments.count() }}</td>
-                                    <td>{{ classroom.enrollments_count }}</td>
-                                    <td>
-                                        <a href="{{ url_for('manage_classroom', classroom_id=classroom.id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-cog me-1"></i> Manage
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center">No classrooms found. Create one in the "Classroom Manager" tab.</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                <div class="user-avatar">{{ (teacher.full_name[0] if teacher and teacher.full_name else 'T')|upper }}
                 </div>
             </div>
+        </nav>
+    </div>
+</header>
 
-            <!-- Create Assignment Section -->
-            <div id="create-assignment" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Create New Assignment</h1>
-                </div>
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-title">Teacher Portal</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item active" onclick="showTab('teacher-dashboard')"><i
+                    class="fas fa-tachometer-alt"></i><span class="menu-text">Dashboard</span></li>
+            <li class="menu-item" onclick="showTab('create-assignment')"><i class="fas fa-plus-circle"></i><span
+                    class="menu-text">Create Assignment</span></li>
+            <li class="menu-item" onclick="showTab('classroom-manager')"><i class="fas fa-chalkboard"></i><span
+                    class="menu-text">Classroom Manager</span></li>
+            <li class="menu-item" onclick="showTab('evaluation-hub')"><i class="fas fa-clipboard-check"></i><span
+                    class="menu-text">Evaluation Hub</span></li>
+            <li class="menu-item" onclick="showTab('reports')"><i class="fas fa-chart-bar"></i><span class="menu-text">Reports</span>
+            </li>
+            <li class="menu-item"><a href="{{ url_for('teacher_logout') }}"><i class="fas fa-sign-out-alt"></i><span
+                    class="menu-text">Logout</span></a></li>
+        </ul>
+    </div>
 
-                <form method="POST" action="{{ url_for('create_assignment') }}">
-                    <div class="form-section">
-                        <h2 class="form-title">Assignment Details</h2>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="assignment_title">Assignment Title</label>
-                                <input type="text" id="assignment_title" name="title" class="form-control" placeholder="e.g., Essay on Photosynthesis" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="classroom_id">Classroom</label>
-                                <select id="classroom_id" name="classroom_id" class="form-select" required onchange="updateSemesters()">
-                                    <option value="">Select Classroom</option>
-                                    {% for classroom in classrooms %}
-                                    <option value="{{ classroom.id }}" data-year="{{ classroom.year }}">
-                                        {{ classroom.name }} ({{ classroom.department }} - Year {{ classroom.year }})
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="deadline_days">Deadline (in days from now)</label>
-                                <input type="number" id="deadline_days" name="deadline_days" class="form-control" min="1" value="7" required>
-                                <small class="text-muted">Number of days students have to submit from creation.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="semester">Semester</label>
-                                <select id="semester" name="semester" class="form-select" required>
-                                    <option value="">Select Semester (updates with classroom)</option>
-                                    <!-- Options populated by JavaScript -->
-                                </select>
-                            </div>
-                        </div>
-                         <div class="form-group">
-                            <label for="max_score">Max Score</label>
-                            <input type="number" id="max_score" name="max_score" class="form-control" min="1" step="0.5" value="10.0" required>
-                            <small class="text-muted">Maximum points for this assignment.</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="instructions">Instructions for Students</label>
-                            <textarea id="instructions" name="instructions" class="form-control" placeholder="Provide detailed assignment instructions, questions, and any guidance." rows="6" required></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h2 class="form-title">Evaluation Settings</h2>
-                        <div class="form-group">
-                            <label>Evaluation Method</label>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="evaluation_method" id="gemini_method" value="gemini" checked onchange="toggleExpectedAnswerField()">
-                                <label class="form-check-label" for="gemini_method">
-                                    <i class="fas fa-robot me-1"></i> AI Evaluation (Gemini API)
-                                </label>
-                                <div class="form-text text-muted">Uses AI to evaluate text-based answers with contextual understanding. Good for open-ended questions.</div>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="evaluation_method" id="expected_method" value="expected" onchange="toggleExpectedAnswerField()">
-                                <label class="form-check-label" for="expected_method">
-                                    <i class="fas fa-file-alt me-1"></i> Expected Answer Matching
-                                </label>
-                                <div class="form-text text-muted">Compares student answers to a predefined expected answer template using algorithms. Good for specific, factual answers.</div>
-                            </div>
-                        </div>
-
-                        <div class="form-group" id="expected-answer-group" style="display: none;">
-                            <label for="expected_answer">Expected Answer / Key Points</label>
-                            <textarea id="expected_answer" name="expected_answer" class="form-control" placeholder="Enter the ideal answer or key points for the 'Expected Answer Matching' method." rows="5"></textarea>
-                            <small class="text-muted">Required if "Expected Answer Matching" is selected. Provide a comprehensive model answer.</small>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-save me-1"></i> Create Assignment
-                    </button>
-                </form>
+    <div class="main-content">
+        <!-- Teacher Dashboard Summary -->
+        <div id="teacher-dashboard" class="tab-content active">
+            <div class="page-header">
+                <h1 class="page-title">Teacher Dashboard</h1>
+                <button class="btn btn-primary" onclick="showTab('create-assignment')"><i class="fas fa-plus"></i> New
+                    Assignment
+                </button>
             </div>
-
-            <!-- Classroom Manager Section -->
-            <div id="classroom-manager" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Classroom Manager</h1>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassroomModal">
-                        <i class="fas fa-plus me-1"></i> New Classroom
-                    </button>
+            <div class="dashboard-widgets">
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Total Classrooms</div>
+                        <div class="widget-icon"><i class="fas fa-chalkboard"></i></div>
+                    </div>
+                    <div class="widget-value">{{ classrooms|length }}</div>
+                    <div class="widget-description">Active classrooms you teach</div>
                 </div>
-
-                <div class="card-grid">
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Assignments Created</div>
+                        <div class="widget-icon"><i class="fas fa-tasks"></i></div>
+                    </div>
+                    <div class="widget-value">{{ teacher.assignments.count() if teacher else 'N/A' }}</div>
+                    <div class="widget-description">Total assignments by you</div>
+                </div>
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Pending Evaluations</div>
+                        <div class="widget-icon"><i class="fas fa-clipboard-list"></i></div>
+                    </div>
+                    <div class="widget-value">{{ pending_evaluations if pending_evaluations is defined else 'N/A' }}
+                    </div>
+                    <div class="widget-description">Submissions awaiting review</div>
+                </div>
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Students Enrolled</div>
+                        <div class="widget-icon"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="widget-value">{{ total_enrollments if total_enrollments is defined else 'N/A' }}</div>
+                    <div class="widget-description">Across all your classrooms</div>
+                </div>
+            </div>
+            <h2 style="margin-bottom: 20px;">Active Assignments</h2>
+            <div class="card-grid">
+                {% if active_assignments %}
+                {% for assignment in active_assignments %}
+                <div class="card assignment-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="card-title">{{ assignment.title }}</div>
+                                <div class="card-subtitle">{{ assignment.classroom.name }} &bull; {{
+                                    assignment.classroom.department }} - Year {{ assignment.classroom.year }}
+                                </div>
+                            </div>
+                            <div><span class="deadline-badge"><i class="fas fa-clock me-1"></i>Due: {{ assignment.submission_deadline.strftime('%b %d, %Y %H:%M') }} UTC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ assignment.instructions|truncate(120) }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                <span class="submission-status status-not-submitted" title="Not Submitted">Not Submitted: {{ assignment.submissions_not_submitted_count }}</span>
+                                <span class="submission-status status-pending-eval" title="Pending Evaluation">Pending Evaluation: {{ assignment.submissions_pending_eval_count }}</span>
+                                <span class="submission-status status-evaluated" title="Evaluated">Evaluated: {{ assignment.submissions_evaluated_count }}</span>
+                            </div>
+                            <div class="text-end">
+                                <div class="text-muted small">Evaluation Method / Max Score</div>
+                                <div>{{ assignment.evaluation_method|capitalize }} / {{ assignment.max_score }} pts
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}"
+                           class="btn btn-sm btn-primary"><i class="fas fa-eye me-1"></i> View Submissions</a>
+                        <a href="{{ url_for('teacher_report_assignment', assignment_id=assignment.id) }}"
+                           class="btn btn-sm btn-success" target="_blank"><i class="fas fa-download me-1"></i> PDF
+                            Report</a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="alert alert-info w-100">No active assignments.</div>
+                {% endif %}
+            </div>
+            <h2 style="margin-bottom: 20px;">Your Classrooms</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Classroom Name</th>
+                        <th>Department / Year</th>
+                        <th>Assignments</th>
+                        <th>Students</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
                     {% if classrooms %}
-                        {% for classroom in classrooms %}
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="card-title">{{ classroom.name }}</div>
-                                        <div class="card-subtitle">{{ classroom.department }} - Year {{ classroom.year }}</div>
-                                    </div>
-                                    <div>
-                                        <span class="badge bg-primary rounded-pill">
-                                            {{ classroom.enrollments_count }} student{{ 's' if classroom.enrollments_count != 1 else '' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                {% if classroom.description %}
-                                <p class="mb-3"><em>{{ classroom.description|truncate(100) }}</em></p>
-                                {% endif %}
-                                <div class="d-flex justify-content-between mb-3">
-                                    <div>
-                                        <div class="small text-muted">Total Assignments</div>
-                                        <div class="fw-bold">{{ classroom.assignments.count() }}</div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-muted">Active</div>
-                                        <div class="fw-bold">{{ classroom.active_assignments|length }}</div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-muted">Completed</div>
-                                        <div class="fw-bold">{{ classroom.completed_assignments|length }}</div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-2">
-                                    <div class="small text-muted">Recent Assignments in this Classroom</div>
-                                    {% if classroom.recent_assignments %}
-                                    <ul class="list-group list-group-flush">
-                                        {% for assignment in classroom.recent_assignments %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
-                                            <div>
-                                                <div>{{ assignment.title|truncate(30) }}</div>
-                                                <small class="text-muted">
-                                                    Due: {{ assignment.submission_deadline.strftime('%b %d') }}
-                                                    {% set eval_percent = (assignment.submissions_evaluated_count / assignment.submissions_submitted_count * 100) if assignment.submissions_submitted_count > 0 else 0 %}
-                                                </small>
-                                            </div>
-                                            <span class="badge rounded-pill bg-{{ 'success' if eval_percent == 100 and assignment.submissions_submitted_count > 0 else ('warning' if assignment.submissions_pending_eval_count > 0 else 'secondary') }}">
-                                                {{ assignment.submissions_evaluated_count }}/{{ assignment.submissions_submitted_count }} eval
-                                            </span>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% else %}
-                                    <p class="list-group-item px-0 py-2">No assignments yet for this classroom.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <a href="{{ url_for('manage_classroom', classroom_id=classroom.id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-cog me-1"></i> Manage Classroom
-                                </a>
-                                <a href="{{ url_for('classroom_report', classroom_id=classroom.id) }}" class="btn btn-sm btn-success" target="_blank">
-                                    <i class="fas fa-download me-1"></i> Classroom Report
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
+                    {% for classroom_item in classrooms %}
+                    <tr>
+                        <td>{{ classroom_item.name }}</td>
+                        <td>{{ classroom_item.department }} - Year {{ classroom_item.year }}</td>
+                        <td>{{ classroom_item.assignments.count() }}</td>
+                        <td>{{ classroom_item.enrollments_count }}</td>
+                        <td><a href="{{ url_for('manage_classroom_details', classroom_id=classroom_item.id) }}"
+                               class="btn btn-sm btn-primary"><i class="fas fa-cog me-1"></i> Manage</a></td>
+                    </tr>
+                    {% endfor %}
                     {% else %}
-                    <div class="alert alert-info w-100">
-                        You haven't created any classrooms yet. Click "New Classroom" to start.
-                    </div>
+                    <tr>
+                        <td colspan="5" class="text-center">No classrooms found. Create one in the "Classroom Manager"
+                            tab.
+                        </td>
+                    </tr>
                     {% endif %}
-                </div>
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <!-- Evaluation Hub -->
-            <div id="evaluation-hub" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Evaluation Hub</h1>
-                    <!-- Filters can be added here if needed -->
+        <!-- Create Assignment Section -->
+        <div id="create-assignment" class="tab-content">
+            <div class="page-header"><h1 class="page-title">Create New Assignment</h1></div>
+            <form method="POST" action="{{ url_for('create_assignment') }}">
+                <div class="form-section"><h2 class="form-title">Assignment Details</h2>
+                    <div class="form-grid">
+                        <div class="form-group"><label for="assignment_title_create">Assignment Title</label><input
+                                type="text" id="assignment_title_create" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group"><label for="classroom_id_create">Classroom</label>
+                            <select id="classroom_id_create" name="classroom_id" class="form-select" required
+                                    onchange="updateSemesters()">
+                                <option value="">Select Classroom</option>
+                                {% for c_item in teacher.classrooms.all() %}
+                                <option value="{{ c_item.id }}" data-year="{{ c_item.year }}">{{ c_item.name }}
+                                    ({{c_item.department}} - Year {{c_item.year}})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label for="deadline_days_create">Deadline (in days from
+                            now)</label><input type="number" id="deadline_days_create" name="deadline_days"
+                                               class="form-control" min="1" value="7" required></div>
+                        <div class="form-group"><label for="semester_create">Semester</label><select
+                                id="semester_create" name="semester" class="form-select" required>
+                            <option value="">Select Semester</option>
+                        </select></div>
+                    </div>
+                    <div class="form-group"><label for="max_score_create">Maximum Score</label><input type="number"
+                                                                                                      id="max_score_create"
+                                                                                                      name="max_score"
+                                                                                                      class="form-control"
+                                                                                                      min="1" step="0.5"
+                                                                                                      value="10.0"
+                                                                                                      required></div>
+                    <div class="form-group"><label for="instructions_create">Instructions for Students</label><textarea
+                            id="instructions_create" name="instructions" class="form-control" rows="6" required
+                            placeholder="Provide detailed assignment instructions, questions, and any guidance."></textarea>
+                    </div>
                 </div>
-
-                <div class="tabs">
-                    <button class="tab active" onclick="switchEvalTab(event, 'pending-eval-tab')">
-                        <i class="fas fa-hourglass-half me-1"></i> Pending Evaluation ({{ pending_submissions|length }})
-                    </button>
-                    <button class="tab" onclick="switchEvalTab(event, 'completed-eval-tab')">
-                        <i class="fas fa-check-double me-1"></i> Completed Evaluations ({{ completed_submissions|length }})
-                    </button>
-                </div>
-
-                <!-- Pending Evaluations Tab -->
-                <div id="pending-eval-tab" class="tab-content active evaluation-tab-content">
-                    {% if pending_submissions %}
-                        {% for submission in pending_submissions %}
-                        <div class="evaluation-container mb-3">
-                            <div class="evaluation-header">
-                                <div>
-                                    <h4 class="evaluation-title mb-1">{{ submission.assignment.title }}</h4>
-                                    <div class="d-flex align-items-center small text-muted">
-                                        <div class="me-3">
-                                            <i class="fas fa-user me-1"></i><strong>{{ submission.student.full_name }}</strong> ({{ submission.student.username }})
-                                        </div>
-                                        <div class="me-3">
-                                            <span class="badge bg-secondary rounded-pill">
-                                                {{ submission.assignment.classroom.name }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <i class="fas fa-paper-plane me-1"></i>
-                                            Submitted: {{ submission.submitted_at.strftime('%b %d, %Y %H:%M') }} UTC
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="status-badge status-pending">Pending Evaluation</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label class="mb-1 fw-bold">Student's Answer:</label>
-                                <div class="answer-text">
-                                    {{ submission.answer_text }}
-                                </div>
-                            </div>
-
-                            <div class="mb-2 small text-muted">
-                                Evaluation Method for Assignment: {{ submission.assignment.evaluation_method|capitalize }}
-                                {% if submission.assignment.evaluation_method == 'expected' and submission.assignment.expected_answer %}
-                                    <a href="#" data-bs-toggle="tooltip" title="{{ submission.assignment.expected_answer|truncate(300) }}">(View Expected)</a>
-                                {% endif %}
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <!-- This button would trigger evaluation for THIS specific submission -->
-                                    <form method="POST" action="{{ url_for('evaluate_all_submissions_for_assignment', assignment_id=submission.assignment.id) }}" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-primary"
-                                                onclick="return confirm('This will evaluate ALL pending submissions for this assignment. Continue?');">
-                                            <i class="fas fa-robot me-1"></i> Evaluate This Assignment's Pending
-                                        </button>
-                                    </form>
-                                </div>
-                                <div>
-                                    <a href="{{ url_for('view_submission_details', submission_id=submission.id) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye me-1"></i> View Details
-                                    </a>
-                                </div>
+                <div class="form-section"><h2 class="form-title">Evaluation Settings</h2>
+                    <div class="form-group"><label>Evaluation Method</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="evaluation_method"
+                                   id="gemini_method_create" value="gemini" checked
+                                   onchange="toggleExpectedAnswerField()">
+                            <label class="form-check-label" for="gemini_method_create"><i class="fas fa-robot me-1"></i>
+                                AI Evaluation (Gemini API)</label>
+                            <div class="form-text text-muted">Uses AI to evaluate text-based answers with contextual
+                                understanding. Good for open-ended questions.
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        All caught up! No submissions are currently pending evaluation.
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Completed Evaluations Tab -->
-                <div id="completed-eval-tab" class="tab-content evaluation-tab-content">
-                     {% if completed_submissions %}
-                        {% for submission in completed_submissions %}
-                        <div class="evaluation-container mb-3">
-                            <div class="evaluation-header">
-                               <div>
-                                    <h4 class="evaluation-title mb-1">{{ submission.assignment.title }}</h4>
-                                    <div class="d-flex align-items-center small text-muted">
-                                        <div class="me-3">
-                                            <i class="fas fa-user me-1"></i><strong>{{ submission.student.full_name }}</strong> ({{ submission.student.username }})
-                                        </div>
-                                        <div class="me-3">
-                                            <span class="badge bg-secondary rounded-pill">
-                                                {{ submission.assignment.classroom.name }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <i class="fas fa-calendar-check me-1"></i>
-                                            Evaluated: {{ submission.evaluated_at.strftime('%b %d, %Y %H:%M') }} UTC
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="status-badge status-graded">Evaluated</span>
-                                </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="evaluation_method"
+                                   id="expected_method_create" value="expected" onchange="toggleExpectedAnswerField()">
+                            <label class="form-check-label" for="expected_method_create"><i
+                                    class="fas fa-file-alt me-1"></i> Expected Answer Matching</label>
+                            <div class="form-text text-muted">Compares student answers to a predefined expected answer
+                                template using similarity algorithms. Good for specific, factual answers.
                             </div>
-
-                            <div class="form-group mb-2">
-                                <label class="mb-1 fw-bold">Student's Answer:</label>
-                                <div class="answer-text">
-                                    {{ submission.answer_text|truncate(300) }}
-                                    {% if submission.answer_text|length > 300 %}
-                                    <div class="text-end mt-1">
-                                        <a href="#" class="small" onclick="alert('Full answer:\n\n{{ submission.answer_text|replace('\n', '\\n')|replace("'", "\\'") }}'); return false;">View full answer</a>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <h5 class="mb-0">Evaluation Result</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <span class="fw-bold fs-4">
-                                                {{ "%.1f"|format(submission.display_score) if submission.display_score is not none else 'N/A' }}/{{ "%.1f"|format(submission.assignment.max_score) }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="badge bg-{{ 'success' if submission.evaluation_method == 'gemini' else ('info' if submission.evaluation_method == 'algorithm' else 'secondary') }} rounded-pill">
-                                                {{ submission.evaluation_method|capitalize if submission.evaluation_method else 'N/A' }}
-                                            </span>
-                                            {% if submission.override_score is not none %}
-                                            <span class="badge bg-warning rounded-pill ms-1">Overridden</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                            data-bs-target="#overrideModal"
-                                            data-submission-id="{{ submission.id }}"
-                                            data-current-score="{{ submission.display_score if submission.display_score is not none else submission.score }}"
-                                            data-max-score="{{ submission.assignment.max_score }}"
-                                            data-student-name="{{ submission.student.full_name }}"
-                                            data-assignment-title="{{ submission.assignment.title }}">
-                                        <i class="fas fa-edit me-1"></i> Override Score
-                                    </button>
-                                </div>
-                            </div>
-
-                            {% if submission.gemini_comment %}
-                            <div class="feedback-section">
-                                <h5><i class="fas fa-comment-dots me-2"></i> Feedback/Comment</h5>
-                                <p class="mb-0">{{ submission.gemini_comment }}</p>
-                            </div>
-                            {% endif %}
-                             {% if submission.override_reason %}
-                            <div class="feedback-section mt-2" style="background-color: #fff3cd;">
-                                <h5><i class="fas fa-exclamation-triangle me-2"></i> Override Reason</h5>
-                                <p class="mb-0">{{ submission.override_reason }}
-                                <small class="d-block text-muted">By: {{ submission.overriding_teacher.full_name if submission.overriding_teacher else 'N/A' }} on {{ submission.overridden_at.strftime('%b %d, %Y') if submission.overridden_at else 'N/A'}}</small>
-                                </p>
-                            </div>
-                            {% endif %}
                         </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No evaluations have been completed yet. Check the "Pending Evaluation" tab.
                     </div>
-                    {% endif %}
+                    <div class="form-group" id="expected-answer-group-create" style="display: none;"><label
+                            for="expected_answer_create">Expected Answer / Key Points</label><textarea
+                            id="expected_answer_create" name="expected_answer" class="form-control" rows="5"
+                            placeholder="Enter the ideal answer or key points for the 'Expected Answer Matching' method."></textarea>
+                        <small class="text-muted">Required if "Expected Answer Matching" is selected. Provide a
+                            comprehensive model answer.</small>
+                    </div>
                 </div>
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save me-1"></i> Create Assignment
+                </button>
+            </form>
+        </div>
+
+        <!-- Classroom Manager Section -->
+        <div id="classroom-manager" class="tab-content">
+            <div class="page-header"><h1 class="page-title">Classroom Manager</h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassroomModal"><i
+                        class="fas fa-plus me-1"></i> New Classroom
+                </button>
             </div>
-
-            <!-- Reports Section -->
-            <div id="reports" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Assignment Reports</h1>
-                    <!-- Filters can be added here -->
-                </div>
-
-                <div class="card-grid">
-                    {% if assignments %}
-                        {% for assignment in assignments %}
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="card-title">{{ assignment.title }}</div>
-                                        <div class="card-subtitle">{{ assignment.classroom.name }} &bull; {{ assignment.semester }}</div>
-                                    </div>
-                                    <div>
-                                        <span class="badge bg-{{ 'success' if assignment.is_completed else 'primary' }} rounded-pill">
-                                            {{ assignment.submission_status_text }}
-                                        </span>
-                                    </div>
+            <div class="card-grid">
+                {% if classrooms %}{% for classroom_item in classrooms %}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="card-title">{{ classroom_item.name }}</div>
+                                <div class="card-subtitle">{{ classroom_item.department }} - Year {{ classroom_item.year
+                                    }}
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <div class="small text-muted">Evaluation Method</div>
-                                            <div>{{ assignment.evaluation_method|capitalize }}</div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <div class="small text-muted">Deadline</div>
-                                            <div>{{ assignment.submission_deadline.strftime('%b %d, %Y %H:%M') }} UTC</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <div class="small text-muted">Submissions ({{ assignment.submissions_submitted_count }}/{{ assignment.submissions_total_possible }})</div>
-                                            <div class="progress" style="height: 20px;" role="progressbar" aria-label="Submissions progress"
-                                                 aria-valuenow="{{ assignment.submission_percentage }}" aria-valuemin="0" aria-valuemax="100">
-                                                <div class="progress-bar bg-success" style="width: {{ assignment.submission_percentage }}%;">
-                                                    {{ "%.0f"|format(assignment.submission_percentage) }}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="small text-muted">Evaluations ({{ assignment.submissions_evaluated_count }}/{{ assignment.submissions_submitted_count }})</div>
-                                            <div class="progress" style="height: 20px;" role="progressbar" aria-label="Evaluations progress"
-                                                 aria-valuenow="{{ assignment.evaluation_percentage }}" aria-valuemin="0" aria-valuemax="100">
-                                                <div class="progress-bar bg-info" style="width: {{ assignment.evaluation_percentage }}%;">
-                                                    {{ "%.0f"|format(assignment.evaluation_percentage) }}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <a href="{{ url_for('teacher_report_assignment', assignment_id=assignment.id) }}" class="btn btn-sm btn-primary" target="_blank">
-                                    <i class="fas fa-download me-1"></i> Download PDF Report
-                                </a>
-                                <a href="{{ url_for('assignment_analytics', assignment_id=assignment.id) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-chart-line me-1"></i> View Analytics
-                                </a>
+                            <div><span class="badge bg-primary rounded-pill">{{ classroom_item.enrollments_count }} student{{'s' if classroom_item.enrollments_count != 1 else ''}}</span>
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="alert alert-info w-100">
-                        No assignments found. Create assignments to generate reports.
                     </div>
-                    {% endif %}
+                    <div class="card-body">
+                        {% if classroom_item.description %}<p class="mb-3"><em>{{
+                        classroom_item.description|truncate(100) }}</em></p>{% endif %}
+                        <p class="mb-2"><strong>Invite Code:</strong> <code class="user-select-all">{{
+                            classroom_item.invite_code }}</code>
+                            <button class="btn btn-link btn-sm p-0 ms-1"
+                                    onclick="copyInviteCode('{{ classroom_item.invite_code }}')"><i
+                                    class="fas fa-copy"></i></button>
+                        </p>
+                        <div class="d-flex justify-content-between mb-3 small">
+                            <div>Total Assignments: <strong>{{ classroom_item.assignments.count() }}</strong></div>
+                            <div>Active: <strong>{{ classroom_item.active_assignments|length }}</strong></div>
+                            <div>Completed: <strong>{{ classroom_item.completed_assignments|length }}</strong></div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('manage_classroom_details', classroom_id=classroom_item.id) }}"
+                           class="btn btn-sm btn-primary"><i class="fas fa-users-cog me-1"></i> Manage Classroom</a>
+                        <a href="{{ url_for('classroom_report', classroom_id=classroom_item.id) }}"
+                           class="btn btn-sm btn-info" target="_blank"><i class="fas fa-chart-pie me-1"></i> Classroom
+                            Report</a>
+                    </div>
                 </div>
+                {% endfor %}{% else %}
+                <div class="alert alert-info w-100">No classrooms created yet.</div>
+                {% endif %}
             </div>
-        </div> <!-- End Main Content -->
-    </div> <!-- End Dashboard Layout -->
+        </div>
 
-    <!-- Create Classroom Modal -->
-    <div class="modal fade" id="createClassroomModal" tabindex="-1" aria-labelledby="createClassroomModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg"> <!-- Made modal larger -->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createClassroomModalLabel">Create New Classroom</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="{{ url_for('create_classroom') }}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="classroomName" class="form-label">Classroom Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="classroomName" name="name" placeholder="e.g., Advanced Programming" required>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="classroomDepartment" class="form-label">Department <span class="text-danger">*</span></label>
-                                <select class="form-select" id="classroomDepartment" name="department" required>
-                                    <option value="">Select Department</option>
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Information Technology">Information Technology</option>
-                                    <!-- Add more departments as needed -->
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="classroomYear" class="form-label">Year <span class="text-danger">*</span></label>
-                                <select class="form-select" id="classroomYear" name="year" required>
-                                    <option value="">Select Year</option>
-                                    <option value="1">1st Year</option>
-                                    <option value="2">2nd Year</option>
-                                    <option value="3">3rd Year</option>
-                                    <option value="4">4th Year</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="classroomDescription" class="form-label">Description (Optional)</label>
-                            <textarea class="form-control" id="classroomDescription" name="description" rows="3" placeholder="A brief description of the classroom or course content."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-1"></i> Create Classroom</button>
-                    </div>
+        <!-- Evaluation Hub -->
+        <div id="evaluation-hub" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">Evaluation Hub</h1>
+                <form method="GET" action="{{ url_for('teacher_dashboard') }}"
+                      class="d-flex flex-wrap gap-2 filter-form">
+                    <input type="hidden" name="active_tab" value="evaluation-hub">
+                    <div class="flex-grow-1"><select name="filter_classroom_id" class="form-select"
+                                                     onchange="this.form.submit()" aria-label="Filter by Classroom">
+                        <option value="">Filter by Classroom: All</option>
+                        {% for c_item in teacher.classrooms.all() %}
+                        <option value="{{ c_item.id }}" {% if current_filter_classroom_id== c_item.id %}selected{% endif
+                                %}>{{ c_item.name }}
+                        </option>
+                        {% endfor %}
+                    </select></div>
+                    <div class="flex-grow-1"><select name="filter_assignment_id" class="form-select"
+                                                     onchange="this.form.submit()" aria-label="Filter by Assignment">
+                        <option value="">Filter by Assignment: All</option>
+                        {% for a_item in all_assignments_for_filter %}
+                        <option value="{{ a_item.id }}" {% if current_filter_assignment_id== a_item.id %}selected{%
+                                endif %}>{{a_item.classroom.name|truncate(15) if a_item.classroom else 'N/A'}} - {{
+                            a_item.title|truncate(25) }}
+                        </option>
+                        {% endfor %}
+                    </select></div>
+                    <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Apply Filters</button>
+                    <a href="{{ url_for('teacher_dashboard', active_tab='evaluation-hub') }}"
+                       class="btn btn-outline-secondary"><i class="fas fa-times"></i> Clear Filters</a>
                 </form>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchEvalTab(event, 'pending-eval-tab')"><i
+                        class="fas fa-hourglass-half me-1"></i> Pending Evaluation ({{ pending_submissions|length }})
+                </button>
+                <button class="tab" onclick="switchEvalTab(event, 'completed-eval-tab')"><i
+                        class="fas fa-check-double me-1"></i> Completed Evaluations ({{ completed_submissions|length }})
+                </button>
+            </div>
+            <div id="pending-eval-tab" class="tab-content active evaluation-tab-content">
+                {% if pending_submissions %}{% for sub in pending_submissions %}
+                <div class="evaluation-container mb-3">
+                    <div class="evaluation-header">
+                        <div><h4 class="evaluation-title mb-1">{{ sub.assignment.title }}</h4>
+                            <div class="d-flex align-items-center small text-muted flex-wrap">
+                                <div class="me-3 mb-1"><i class="fas fa-user me-1"></i><strong>{{ sub.student.full_name
+                                    }}</strong> ({{sub.student.username}})
+                                </div>
+                                <div class="me-3 mb-1"><span class="badge bg-secondary rounded-pill">{{ sub.assignment.classroom.name }}</span>
+                                </div>
+                                <div class="mb-1"><i class="fas fa-paper-plane me-1"></i>Submitted: {{
+                                    sub.submitted_at.strftime('%b %d, %Y %H:%M') }} UTC
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end"><span class="status-badge status-pending">Pending Evaluation</span></div>
+                    </div>
+                    <div class="form-group mb-3"><label class="mb-1 fw-bold">Student's Answer:</label>
+                        <div class="answer-text">{{ sub.answer_text }}</div>
+                    </div>
+                    <div class="mb-2 small text-muted">Evaluation Method for Assignment: {{
+                        sub.assignment.evaluation_method|capitalize }}
+                        {% if sub.assignment.evaluation_method == 'expected' and sub.assignment.expected_answer %}<a
+                                href="#" data-bs-toggle="tooltip"
+                                title="Expected: {{ sub.assignment.expected_answer|truncate(300) }}">(View Expected)</a>{%
+                        endif %}
+                    </div>
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <div>
+                            <form method="POST"
+                                  action="{{ url_for('evaluate_single_submission', submission_id=sub.id) }}"
+                                  style="display:inline-block;" class="me-2">
+                                <button type="submit" class="btn btn-sm btn-success"><i
+                                        class="fas fa-play-circle me-1"></i> Evaluate This Submission
+                                </button>
+                            </form>
+                            <form method="POST"
+                                  action="{{ url_for('evaluate_all_submissions_for_assignment', assignment_id=sub.assignment.id) }}"
+                                  style="display:inline-block;">
+                                <button type="submit" class="btn btn-sm btn-primary"
+                                        onclick="return confirm('Are you sure you want to evaluate ALL pending submissions for this assignment?');">
+                                    <i class="fas fa-fast-forward me-1"></i> Evaluate All Pending (for this Assignment)
+                                </button>
+                            </form>
+                        </div>
+                        <a href="{{ url_for('view_submission_details', submission_id=sub.id) }}"
+                           class="btn btn-sm btn-info"><i class="fas fa-eye me-1"></i> View Details</a>
+                    </div>
+                </div>
+                {% endfor %}{% else %}
+                <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>All caught up! No submissions
+                    are currently pending evaluation.
+                </div>
+                {% endif %}
+            </div>
+            <div id="completed-eval-tab" class="tab-content evaluation-tab-content">
+                {% if completed_submissions %}{% for sub in completed_submissions %}
+                <div class="evaluation-container mb-3">
+                    <div class="evaluation-header">
+                        <div><h4 class="evaluation-title mb-1">{{ sub.assignment.title }}</h4>
+                            <div class="d-flex align-items-center small text-muted flex-wrap">
+                                <div class="me-3 mb-1"><i class="fas fa-user me-1"></i><strong>{{ sub.student.full_name
+                                    }}</strong> ({{sub.student.username}})
+                                </div>
+                                <div class="me-3 mb-1"><span class="badge bg-secondary rounded-pill">{{ sub.assignment.classroom.name }}</span>
+                                </div>
+                                <div class="mb-1"><i class="fas fa-calendar-check me-1"></i>Evaluated: {{
+                                    sub.evaluated_at.strftime('%b %d, %Y %H:%M') }} UTC
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end"><span class="status-badge status-graded">Evaluated</span></div>
+                    </div>
+                    <div class="form-group mb-2"><label class="mb-1 fw-bold">Student's Answer:</label>
+                        <div class="answer-text">{{ sub.answer_text|truncate(300) }}
+                            {% if sub.answer_text|length > 300 %}
+                            <div class="text-end mt-1"><a href="#" class="small"
+                                                          onclick="alert('Full answer:\n\n{{ sub.answer_text|escape|replace('\n', '\\n')|replace("'",
+                                "\\'") }}'); return false;">View full answer</a></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <div><h5 class="mb-0">Evaluation Result</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3"><span class="fw-bold fs-4">{{ "%.1f"|format(sub.display_score) if sub.display_score is not none else 'N/A' }}/{{ "%.1f"|format(sub.assignment.max_score) }}</span>
+                                </div>
+                                <div><span
+                                        class="badge bg-{{ 'success' if sub.evaluation_method == 'gemini' else ('info' if sub.evaluation_method == 'algorithm' else 'secondary') }} rounded-pill">{{ sub.evaluation_method|capitalize if sub.evaluation_method else 'N/A' }}</span>
+                                    {% if sub.override_score is not none %}<span
+                                            class="badge bg-warning rounded-pill ms-1">Overridden</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#overrideModal"
+                                data-submission-id="{{ sub.id }}"
+                                data-current-score="{{ sub.display_score if sub.display_score is not none else sub.score }}"
+                                data-max-score="{{ sub.assignment.max_score }}"
+                                data-student-name="{{ sub.student.full_name }}"
+                                data-assignment-title="{{ sub.assignment.title }}"><i class="fas fa-edit me-1"></i>
+                            Override Score
+                        </button>
+                    </div>
+                    {% if sub.gemini_comment %}
+                    <div class="feedback-section"><h5><i class="fas fa-comment-dots me-2"></i>Feedback/Comment</h5>
+                        <p class="mb-0">{{ sub.gemini_comment }}</p></div>
+                    {% endif %}
+                    {% if sub.override_reason %}
+                    <div class="feedback-section mt-2" style="background-color: #fff3cd;"><h5><i
+                            class="fas fa-exclamation-triangle me-2"></i>Override Reason</h5>
+                        <p class="mb-0">{{ sub.override_reason }}<small class="d-block text-muted">By: {{
+                            sub.overriding_teacher.full_name if sub.overriding_teacher else 'N/A' }} on {{
+                            sub.overridden_at.strftime('%b %d, %Y') if sub.overridden_at else 'N/A'}}</small></p></div>
+                    {% endif %}
+                </div>
+                {% endfor %}{% else %}
+                <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>No completed evaluations match the
+                    current filters.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">Assignment Reports</h1>
+                <form method="GET" action="{{ url_for('teacher_dashboard') }}"
+                      class="d-flex flex-wrap gap-2 filter-form">
+                    <input type="hidden" name="active_tab" value="reports">
+                    <div class="flex-grow-1"><select name="filter_classroom_id" class="form-select"
+                                                     onchange="this.form.submit()"
+                                                     aria-label="Filter by Classroom for Reports">
+                        <option value="">Filter by Classroom: All</option>
+                        {% for c_item in teacher.classrooms.all() %}
+                        <option value="{{ c_item.id }}" {% if current_filter_classroom_id== c_item.id %}selected{% endif
+                                %}>{{ c_item.name }}
+                        </option>
+                        {% endfor %}
+                    </select></div>
+                    <div class="flex-grow-1"><select name="filter_assignment_id" class="form-select"
+                                                     onchange="this.form.submit()"
+                                                     aria-label="Filter by Assignment for Reports">
+                        <option value="">Filter by Assignment: All</option>
+                        {% for a_item in all_assignments_for_filter %}
+                        <option value="{{ a_item.id }}" {% if current_filter_assignment_id== a_item.id %}selected{%
+                                endif %}>{{a_item.classroom.name|truncate(15) if a_item.classroom else 'N/A'}} - {{
+                            a_item.title|truncate(25) }}
+                        </option>
+                        {% endfor %}
+                    </select></div>
+                    <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Apply Filters</button>
+                    <a href="{{ url_for('teacher_dashboard', active_tab='reports') }}"
+                       class="btn btn-outline-secondary"><i class="fas fa-times"></i> Clear Filters</a>
+                </form>
+            </div>
+            <div class="card-grid">
+                {% if assignments %}{% for assignment_item in assignments %}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="card-title">{{ assignment_item.title }}</div>
+                                <div class="card-subtitle">{{ assignment_item.classroom.name }} &bull; {{
+                                    assignment_item.semester }}
+                                </div>
+                            </div>
+                            <div><span
+                                    class="badge bg-{{ 'success' if assignment_item.is_completed else 'primary' }} rounded-pill">{{ assignment_item.submission_status_text }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Evaluation Method</div>
+                                    <div>{{ assignment_item.evaluation_method|capitalize }}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="small text-muted">Deadline</div>
+                                    <div>{{ assignment_item.submission_deadline.strftime('%b %d, %Y %H:%M') }} UTC</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Submissions ({{
+                                        assignment_item.submissions_submitted_count }}/{{
+                                        assignment_item.submissions_total_possible }})
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-success"
+                                             style="width: {{ assignment_item.submission_percentage }}%;">{{
+                                            "%.0f"|format(assignment_item.submission_percentage) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">Evaluations ({{
+                                        assignment_item.submissions_evaluated_count }}/{{
+                                        assignment_item.submissions_submitted_count }})
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-info"
+                                             style="width: {{ assignment_item.evaluation_percentage }}%;">{{
+                                            "%.0f"|format(assignment_item.evaluation_percentage) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('teacher_report_assignment', assignment_id=assignment_item.id) }}"
+                           class="btn btn-sm btn-primary" target="_blank"><i class="fas fa-download me-1"></i> Download
+                            PDF Report</a>
+                        <a href="{{ url_for('assignment_analytics', assignment_id=assignment_item.id) }}"
+                           class="btn btn-sm btn-info"><i class="fas fa-chart-line me-1"></i> View Analytics</a>
+                    </div>
+                </div>
+                {% endfor %}{% else %}
+                <div class="alert alert-info w-100">No assignments match filters or none created.</div>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Override Score Modal -->
-    <div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="overrideModalLabel">Override Score</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <!-- Form action will be set by JS -->
-                <form id="overrideForm" method="POST" action="">
-                    <div class="modal-body">
-                        <p>Student: <strong id="overrideStudentName"></strong></p>
-                        <p>Assignment: <strong id="overrideAssignmentTitle"></strong></p>
-                        <hr>
-                        <!-- Hidden input for submission_id is not strictly needed if action is set correctly -->
-                        <!-- <input type="hidden" id="submissionId" name="submission_id"> -->
-                        <div class="mb-3">
-                            <label for="newScore" class="form-label">New Score <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="newScore" name="new_score" min="0" step="0.1" required>
-                            <div class="form-text">Current Score: <span id="currentScoreDisplay">-</span>, Max score: <span id="maxScoreDisplay"></span></div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="reason" class="form-label">Reason for override <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="reason" name="reason" rows="3" required placeholder="Explain why you are overriding this score. This will be visible to the student."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
-                    </div>
-                </form>
+<!-- Create Classroom Modal -->
+<div class="modal fade" id="createClassroomModal" tabindex="-1" aria-labelledby="createClassroomModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="createClassroomModalLabel">Create New Classroom</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <form method="POST" action="{{ url_for('create_classroom') }}">
+                <div class="modal-body">
+                    <div class="mb-3"><label for="classroomNameModal" class="form-label">Classroom Name <span
+                            class="text-danger">*</span></label><input type="text" class="form-control"
+                                                                       id="classroomNameModal" name="name" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label for="classroomDepartmentModal" class="form-label">Department <span
+                                class="text-danger">*</span></label><select class="form-select"
+                                                                            id="classroomDepartmentModal"
+                                                                            name="department" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Technology">Information Technology</option>
+                        </select></div>
+                        <div class="col-md-6"><label for="classroomYearModal" class="form-label">Year <span
+                                class="text-danger">*</span></label><select class="form-select" id="classroomYearModal"
+                                                                            name="year" required>
+                            <option value="">Select Year</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select></div>
+                    </div>
+                    <div class="mb-3"><label for="classroomDescriptionModal" class="form-label">Description
+                        (Optional)</label><textarea class="form-control" id="classroomDescriptionModal"
+                                                    name="description" rows="3"></textarea></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-1"></i> Create
+                        Classroom
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Semester mapping based on year
-        const semesterMap = {
-            1: ["Semester 1", "Semester 2"],
-            2: ["Semester 3", "Semester 4"],
-            3: ["Semester 5", "Semester 6"],
-            4: ["Semester 7", "Semester 8"]
-        };
+<!-- Override Score Modal -->
+<div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="overrideModalLabel">Override Score</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="overrideForm" method="POST" action="">
+                <div class="modal-body">
+                    <p>Student: <strong id="overrideStudentName"></strong></p>
+                    <p>Assignment: <strong id="overrideAssignmentTitle"></strong></p>
+                    <hr>
+                    <div class="mb-3"><label for="newScoreModal" class="form-label">New Score <span class="text-danger">*</span></label><input
+                            type="number" class="form-control" id="newScoreModal" name="new_score" min="0" step="0.1"
+                            required>
+                        <div class="form-text">Current Score: <span id="currentScoreDisplay"></span>, Maximum Score:
+                            <span id="maxScoreDisplay"></span></div>
+                    </div>
+                    <div class="mb-3"><label for="reasonModal" class="form-label">Reason for override <span
+                            class="text-danger">*</span></label><textarea class="form-control" id="reasonModal"
+                                                                          name="reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-        function updateSemesters() {
-            const classroomSelect = document.getElementById('classroom_id');
-            const semesterSelect = document.getElementById('semester');
-            const selectedOption = classroomSelect.options[classroomSelect.selectedIndex];
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const semesterMap = {
+        1: ["Semester 1", "Semester 2"],
+        2: ["Semester 3", "Semester 4"],
+        3: ["Semester 5", "Semester 6"],
+        4: ["Semester 7", "Semester 8"]
+    };
 
-            semesterSelect.innerHTML = '<option value="">Select Semester (updates with classroom)</option>'; // Reset
+    function updateSemesters() {
+        const crSel = document.getElementById('classroom_id_create'),
+            semSel = document.getElementById('semester_create'), opt = crSel.options[crSel.selectedIndex];
+        semSel.innerHTML = '<option value="">Select Semester</option>';
+        if (!opt || !opt.value) return;
+        const year = parseInt(opt.getAttribute('data-year')), sems = semesterMap[year] || [];
+        let opts = '<option value="">Select Semester</option>';
+        sems.forEach(s => opts += `<option value="${s}">${s}</option>`);
+        semSel.innerHTML = opts;
+    }
 
-            if (!selectedOption || !selectedOption.value) {
-                return;
-            }
-
-            const year = parseInt(selectedOption.getAttribute('data-year'));
-            const semesters = semesterMap[year] || [];
-
-            let options = '<option value="">Select Semester</option>';
-            semesters.forEach(sem => {
-                options += `<option value="${sem}">${sem}</option>`;
-            });
-            semesterSelect.innerHTML = options;
-        }
-
-        function showTab(tabId) {
-            document.querySelectorAll('.main-content .tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
-
-            document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
-            for (let item of menuItems) {
-                if (item.getAttribute('onclick') === `showTab('${tabId}')`) {
-                    item.classList.add('active');
-                    break;
-                }
-            }
-
-            // Update top nav active state
-            document.querySelectorAll('header .nav-links a').forEach(link => {
-                link.classList.remove('active');
-                 if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(`showTab('${tabId}')`)) {
-                    link.classList.add('active');
-                }
-            });
-
-
-            // Store active tab in localStorage to persist
-            localStorage.setItem('activeTeacherTab', tabId);
-
-            if (window.innerWidth <= 768) {
-                document.querySelector('.sidebar').classList.remove('active');
-            }
-        }
-
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('active');
-        }
-
-        function switchEvalTab(event, tabIdToShow) {
-            // Update tab buttons visual state
-            document.querySelectorAll('#evaluation-hub .tabs .tab').forEach(t => {
-                t.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-
-            // Show/hide tab content panes
-            document.querySelectorAll('#evaluation-hub .evaluation-tab-content').forEach(tc => {
-                tc.classList.remove('active'); // Hide all
-            });
-            const targetContent = document.getElementById(tabIdToShow);
-            if(targetContent) {
-                targetContent.classList.add('active'); // Show target
-            }
-        }
-
-        function toggleExpectedAnswerField() {
-            const expectedMethodRadio = document.getElementById('expected_method');
-            const expectedAnswerGroup = document.getElementById('expected-answer-group');
-            const expectedAnswerTextarea = document.getElementById('expected_answer');
-
-            if (expectedMethodRadio.checked) {
-                expectedAnswerGroup.style.display = 'block';
-                expectedAnswerTextarea.required = true;
-            } else {
-                expectedAnswerGroup.style.display = 'none';
-                expectedAnswerTextarea.required = false;
-            }
-        }
-
-        const overrideModal = document.getElementById('overrideModal');
-        if (overrideModal) {
-            overrideModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const submissionId = button.getAttribute('data-submission-id');
-                const currentScore = button.getAttribute('data-current-score');
-                const maxScore = button.getAttribute('data-max-score');
-                const studentName = button.getAttribute('data-student-name');
-                const assignmentTitle = button.getAttribute('data-assignment-title');
-
-
-                const form = document.getElementById('overrideForm');
-                form.action = `/teacher/override/${submissionId}`; // Set form action dynamically
-
-                document.getElementById('overrideStudentName').textContent = studentName || 'N/A';
-                document.getElementById('overrideAssignmentTitle').textContent = assignmentTitle || 'N/A';
-
-                const newScoreInput = document.getElementById('newScore');
-                newScoreInput.value = parseFloat(currentScore).toFixed(1) || '';
-                newScoreInput.max = maxScore;
-
-                document.getElementById('currentScoreDisplay').textContent = parseFloat(currentScore).toFixed(1) || 'N/A';
-                document.getElementById('maxScoreDisplay').textContent = maxScore || 'N/A';
-                document.getElementById('reason').value = ''; // Clear previous reason
-            });
-        }
-
-        // Function to simulate AI evaluation (client-side feedback only)
-        // Actual evaluation is server-side
-        function evaluateSingleSubmissionWithGemini(submissionId) {
-            const btn = event.currentTarget;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Evaluating...';
-            btn.disabled = true;
-
-            // This would typically be an AJAX call to a specific endpoint
-            // For now, it's just a visual simulation.
-            // The actual evaluation for "Evaluate This Assignment's Pending" is a form POST.
-            setTimeout(() => {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-                alert(`Simulated AI evaluation for submission ${submissionId}. In a real scenario, this would trigger a server-side process and update the UI upon completion.`);
-                // Potentially refresh the page or part of it after actual evaluation
-                // window.location.reload();
-            }, 2500);
-        }
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize expected answer field visibility
-            toggleExpectedAnswerField();
-
-            // Initialize Bootstrap tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            });
-
-            // Restore active tab from localStorage
-            const savedTab = localStorage.getItem('activeTeacherTab');
-            if (savedTab) {
-                showTab(savedTab);
-            } else {
-                 showTab('teacher-dashboard'); // Default tab
-            }
-
-            // Auto-dismiss flash messages after 5 seconds
-            setTimeout(function() {
-                let flashMessages = document.querySelectorAll('.flash-messages .alert');
-                flashMessages.forEach(function(message) {
-                    new bootstrap.Alert(message).close();
-                });
-            }, 5000);
-
-            // Ensure the correct evaluation hub tab is active on load (if navigating via hash)
-            if(window.location.hash === "#evaluation-hub") {
-                showTab('evaluation-hub'); // Make sure main tab is active
-                // You might need more specific logic if you want to default to pending/completed within eval hub
-            }
+    function showTab(tabId) {
+        document.querySelectorAll('.main-content .tab-content').forEach(t => t.classList.remove('active'));
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => {
+            if (i.getAttribute('onclick') === `showTab('${tabId}')`) i.classList.add('active');
         });
-    </script>
+        document.querySelectorAll('header .nav-links a').forEach(l => {
+            l.classList.remove('active');
+            if (l.getAttribute('onclick') && l.getAttribute('onclick').includes(tabId)) l.classList.add('active');
+        });
+        localStorage.setItem('activeTeacherTab', tabId);
+        if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('active');
+
+        const url = new URL(window.location);
+        url.searchParams.set('active_tab', tabId); // Keep this to remember tab on page reload if filters are used
+        // history.pushState({}, '', url); // Using this can prevent full reload but might complicate filter form submission. For now, full reload on filter is okay.
+
+        if (tabId === 'evaluation-hub' || tabId === 'reports') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const classFilter = document.querySelector(`#${tabId} select[name="filter_classroom_id"]`);
+            const assignFilter = document.querySelector(`#${tabId} select[name="filter_assignment_id"]`);
+            if (classFilter) classFilter.value = urlParams.get('filter_classroom_id') || "";
+            if (assignFilter) assignFilter.value = urlParams.get('filter_assignment_id') || "";
+        }
+    }
+
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+    }
+
+    function switchEvalTab(event, tabId) {
+        document.querySelectorAll('#evaluation-hub .tabs .tab').forEach(t => t.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.querySelectorAll('#evaluation-hub .evaluation-tab-content').forEach(tc => tc.classList.remove('active'));
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+        // Store active sub-tab for eval hub if needed, e.g., in localStorage or by updating a hidden input for form submission
+    }
+
+    function toggleExpectedAnswerField() {
+        const expRad = document.getElementById('expected_method_create'),
+            expGrp = document.getElementById('expected-answer-group-create'),
+            expArea = document.getElementById('expected_answer_create');
+        if (expRad && expGrp && expArea) {
+            if (expRad.checked) {
+                expGrp.style.display = 'block';
+                expArea.required = true;
+            } else {
+                expGrp.style.display = 'none';
+                expArea.required = false;
+            }
+        }
+    }
+
+    const overrideModalEl = document.getElementById('overrideModal');
+    if (overrideModalEl) {
+        overrideModalEl.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            document.getElementById('overrideForm').action = `/teacher/override/${btn.getAttribute('data-submission-id')}`;
+            document.getElementById('overrideStudentName').textContent = btn.getAttribute('data-student-name') || 'N/A';
+            document.getElementById('overrideAssignmentTitle').textContent = btn.getAttribute('data-assignment-title') || 'N/A';
+            const newScoreIn = document.getElementById('newScoreModal'); // Corrected ID
+            newScoreIn.value = parseFloat(btn.getAttribute('data-current-score')).toFixed(1) || '';
+            newScoreIn.max = btn.getAttribute('data-max-score');
+            document.getElementById('currentScoreDisplay').textContent = parseFloat(btn.getAttribute('data-current-score')).toFixed(1) || 'N/A';
+            document.getElementById('maxScoreDisplay').textContent = btn.getAttribute('data-max-score') || 'N/A';
+            document.getElementById('reasonModal').value = ''; // Corrected ID
+        });
+    }
+
+    function copyInviteCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const tempAlert = document.createElement('div');
+            tempAlert.className = 'alert alert-success alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
+            tempAlert.setAttribute('role', 'alert');
+            tempAlert.style.zIndex = "2000";
+            tempAlert.innerHTML = `Invite code "${code}" copied! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(tempAlert);
+            setTimeout(() => new bootstrap.Alert(tempAlert).close(), 3000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleExpectedAnswerField(); // Call for create assignment form
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (el) {
+            return new bootstrap.Tooltip(el);
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTabFromUrl = urlParams.get('active_tab') || localStorage.getItem('activeTeacherTab') || 'teacher-dashboard';
+        showTab(activeTabFromUrl);
+
+        if (activeTabFromUrl === 'evaluation-hub') {
+            const activeEvalSubTab = urlParams.get('eval_sub_tab') || 'pending-eval-tab';
+            document.querySelectorAll('#evaluation-hub .tabs .tab').forEach(t => t.classList.remove('active'));
+            const targetSubTabButton = document.querySelector(`#evaluation-hub .tabs .tab[onclick*="'${activeEvalSubTab}'"]`);
+            if (targetSubTabButton) targetSubTabButton.classList.add('active');
+            document.querySelectorAll('#evaluation-hub .evaluation-tab-content').forEach(tc => tc.classList.remove('active'));
+            const targetSubTabContent = document.getElementById(activeEvalSubTab);
+            if (targetSubTabContent) targetSubTabContent.classList.add('active');
+        }
+
+        setTimeout(function () {
+            document.querySelectorAll('.flash-messages .alert').forEach(function (msg) {
+                new bootstrap.Alert(msg).close();
+            });
+        }, 5000);
+
+        if (window.location.hash && !activeTabFromUrl) { // Only use hash if active_tab not in URL
+            const hashTab = window.location.hash.substring(1);
+            if (document.getElementById(hashTab)) {
+                showTab(hashTab);
+            }
+        }
+    });
+</script>
 </body>
 </html>
