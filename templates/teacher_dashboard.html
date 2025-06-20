@@ -1072,10 +1072,12 @@
                             </div>
                             <div class="form-group">
                                 <label for="classroom_id">Classroom</label>
-                                <select id="classroom_id" name="classroom_id" class="form-control" required>
+                                <select id="classroom_id" name="classroom_id" class="form-control" required onchange="updateSemesters()">
                                     <option value="">Select Classroom</option>
                                     {% for classroom in classrooms %}
-                                    <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.department }} - Year {{ classroom.year }})</option>
+                                    <option value="{{ classroom.id }}" data-year="{{ classroom.year }}">
+                                        {{ classroom.name }} ({{ classroom.department }} - Year {{ classroom.year }})
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -1091,10 +1093,7 @@
                                 <label for="semester">Semester</label>
                                 <select id="semester" name="semester" class="form-control" required>
                                     <option value="">Select Semester</option>
-                                    <option value="Spring">Spring</option>
-                                    <option value="Summer">Summer</option>
-                                    <option value="Fall">Fall</option>
-                                    <option value="Winter">Winter</option>
+                                    <!-- Will be populated by JavaScript -->
                                 </select>
                             </div>
                         </div>
@@ -1569,6 +1568,36 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Semester mapping based on year
+        const semesterMap = {
+            1: ["Semester 1", "Semester 2"],
+            2: ["Semester 3", "Semester 4"],
+            3: ["Semester 5", "Semester 6"],
+            4: ["Semester 7", "Semester 8"]
+        };
+
+        // Update semesters based on selected classroom's year
+        function updateSemesters() {
+            const classroomSelect = document.getElementById('classroom_id');
+            const semesterSelect = document.getElementById('semester');
+            const selectedOption = classroomSelect.options[classroomSelect.selectedIndex];
+
+            if (!selectedOption.value) {
+                semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+                return;
+            }
+
+            const year = parseInt(selectedOption.getAttribute('data-year'));
+            const semesters = semesterMap[year] || [];
+
+            let options = '<option value="">Select Semester</option>';
+            semesters.forEach(sem => {
+                options += `<option value="${sem}">${sem}</option>`;
+            });
+
+            semesterSelect.innerHTML = options;
+        }
+
         // Tab navigation
         function showTab(tabId) {
             // Hide all tab contents
