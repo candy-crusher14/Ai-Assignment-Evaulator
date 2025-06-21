@@ -932,6 +932,16 @@
                 flex-direction: column;
             }
         }
+
+        .member-photo img {
+            width: 120px;         /* or any size you like */
+            height: 120px;
+            object-fit: cover;    /* crop it nicely */
+            border-radius: 50%;   /* makes it circular */
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
     </style>
 </head>
 <body>
@@ -1109,8 +1119,9 @@
                 <div class="team-grid">
                     <div class="team-member">
                         <div class="member-photo">
-                            <span>M1</span>
+                            <img src="{{ url_for('static', filename='images/member1.jpg') }}" alt="Hammad">
                         </div>
+
                         <h3 class="member-name">Hammad</h3>
                         <div class="member-role">Project Lead</div>
                         <p class="member-bio">Worked in Backend (Flask Framework).</p>
@@ -1121,7 +1132,7 @@
                     </div>
                     <div class="team-member">
                         <div class="member-photo">
-                            <span>M2</span>
+                            <img src="{{ url_for('static', filename='images/member2.png') }}" alt="Zabeer">
                         </div>
                         <h3 class="member-name">Zabeer</h3>
                         <div class="member-role">Data will be given soon.</div>
@@ -1133,7 +1144,7 @@
                     </div>
                     <div class="team-member">
                         <div class="member-photo">
-                            <span>M3</span>
+                            <img src="{{ url_for('static', filename='images/member3.png') }}" alt="Zain">
                         </div>
                         <h3 class="member-name">Zain</h3>
                         <div class="member-role">Data will be given soon.</div>
@@ -1145,7 +1156,7 @@
                     </div>
                     <div class="team-member">
                         <div class="member-photo">
-                            <span>M4</span>
+                            <span>Izhan</span>
                         </div>
                         <h3 class="member-name">Izhan</h3>
                         <div class="member-role">Data will be given soon.</div>
