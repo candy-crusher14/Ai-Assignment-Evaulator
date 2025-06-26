@@ -1198,3 +1198,4 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Setup Error: {e}", file=sys.stderr); db.session.rollback()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+
